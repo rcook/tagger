@@ -1,5 +1,11 @@
 # Tagger
 
+## Prerequisites
+
+### Cargo
+
+Follow Cargo [installation instructions][cargo-installation] to install Cargo using rustup.
+
 ## Licence
 
 [MIT License][licence]
