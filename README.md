@@ -6,6 +6,12 @@
 
 Follow Cargo [installation instructions][cargo-installation] to install Cargo using rustup.
 
+### cargo-watch
+
+```bash
+cargo install cargo-watch
+```
+
 ## Licence
 
 [MIT License][licence]
