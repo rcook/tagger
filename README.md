@@ -12,6 +12,12 @@ Follow Cargo [installation instructions][cargo-installation] to install Cargo us
 cargo install cargo-watch
 ```
 
+### Build and test
+
+```bash
+make
+```
+
 ## Licence
 
 [MIT License][licence]
