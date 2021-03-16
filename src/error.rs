@@ -9,9 +9,24 @@ where
     Error::Internal(facility, message.into())
 }
 
+#[allow(dead_code)]
+pub fn user_error<S>(message: S) -> Error
+where
+    S: Into<String>,
+{
+    Error::User(message.into())
+}
+
+pub fn user_error_result<T, S>(message: S) -> Result<T>
+where
+    S: Into<String>,
+{
+    Err(Error::User(message.into()))
+}
+
 #[derive(Debug, Clone)]
 pub enum Error {
-    //User(String),
+    User(String),
     Internal(&'static str, String),
 }
 
@@ -141,23 +156,5 @@ impl std::convert::From<yaml_rust::ScanError> for Error {
     fn from(error: yaml_rust::ScanError) -> Self {
         internal_error("Yaml", error.to_string())
     }
-}
-*/
-
-/*
-pub fn user_error<S>(message: S) -> Error
-where
-    S: Into<String>,
-{
-    Error::User(message.into())
-}
-*/
-
-/*
-pub fn user_error_result<T, S>(message: S) -> Result<T>
-where
-    S: Into<String>,
-{
-    Err(Error::User(message.into()))
 }
 */
