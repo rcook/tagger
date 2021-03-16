@@ -6,15 +6,11 @@ mod walk;
 
 use absolute_path::absolute_path;
 use rusqlite::{params, Connection};
-use sha2::{Digest, Sha256};
-use std::convert::TryFrom;
 use std::env::{args, current_dir};
-use std::fs::File;
-use std::io;
 use std::path::Path;
 
 use crate::error::Result;
-use crate::item::{Hash, Item, ItemPath, ItemRecord};
+use crate::item::{Item, ItemRecord};
 use crate::walk::{ExtensionSet, SampleVisitor};
 
 fn do_walk(start_dir: &Path) -> Result<()> {
@@ -37,13 +33,7 @@ fn do_walk(start_dir: &Path) -> Result<()> {
     visitor.visit(&start_dir, &|entry| {
         let p = entry.path();
         println!("Found {}", p.to_str()?);
-        let mut f = File::open(&p)?;
-        let size = i64::try_from(f.metadata()?.len())?;
-        let mut hasher = Sha256::new();
-        io::copy(&mut f, &mut hasher)?;
-        let hash: Hash = hasher.finalize();
-        let item_path = ItemPath::from(&start_dir, &p)?;
-        let item = Item::new(item_path, hash, size);
+        let item = Item::from_file(start_dir, &p)?;
         item.save(&conn)?;
         Ok(())
     })?;

@@ -1,6 +1,9 @@
 use generic_array::GenericArray;
 use rusqlite::{params, Connection};
 use sha2::{Digest, Sha256};
+use std::convert::TryFrom;
+use std::fs::File;
+use std::io::copy;
 use std::path::Path;
 
 use crate::error::Result;
@@ -22,12 +25,17 @@ pub struct ItemRecord {
 }
 
 impl Item {
-    pub fn new(path: ItemPath, hash: Hash, size: i64) -> Self {
-        Self {
-            path: path,
+    pub fn from_file(start_dir: &Path, path: &Path) -> Result<Self> {
+        let mut f = File::open(&path)?;
+        let size = i64::try_from(f.metadata()?.len())?;
+        let mut hasher = Sha256::new();
+        copy(&mut f, &mut hasher)?;
+        let hash: Hash = hasher.finalize();
+        Ok(Self {
+            path: ItemPath::from(&start_dir, &path)?,
             hash: hash,
             size: size,
-        }
+        })
     }
 
     pub fn save(&self, conn: &Connection) -> Result<()> {
