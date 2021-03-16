@@ -10,8 +10,15 @@ use std::env::{args, current_dir};
 use std::path::Path;
 
 use crate::error::Result;
-use crate::item::{Item, ItemRecord};
+use crate::item::Item;
 use crate::walk::{ExtensionSet, SampleVisitor};
+
+#[derive(Debug)]
+pub struct Record {
+    pub id: i32,
+    pub location: String,
+    pub signature: String,
+}
 
 fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
     let visitor = SampleVisitor::new(ExtensionSet::new(&["aiff", "wav"]));
@@ -26,18 +33,17 @@ fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
         Ok(())
     })?;
 
-    let mut stmt = conn.prepare("SELECT id, path, hash, size FROM items")?;
-    let item_iter = stmt.query_map(params![], |row| {
-        Ok(ItemRecord {
+    let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
+    let record_iter = stmt.query_map(params![], |row| {
+        Ok(Record {
             id: row.get(0)?,
-            path: row.get(1)?,
-            hash: row.get(2)?,
-            size: row.get(3)?,
+            location: row.get(1)?,
+            signature: row.get(2)?,
         })
     })?;
 
-    for item in item_iter {
-        println!("Found item {:?}", item.unwrap());
+    for record in record_iter {
+        println!("Found record {:?}", record.unwrap());
     }
 
     Ok(())
@@ -52,10 +58,9 @@ fn main() -> Result<()> {
         let conn = Connection::open(db_path)?;
         conn.execute(
             "CREATE TABLE IF NOT EXISTS items (
-                id      INTEGER PRIMARY KEY,
-                path    TEXT NOT NULL UNIQUE,
-                hash    TEXT NOT NULL,
-                size    INTEGER NOT NULL
+                id          INTEGER PRIMARY KEY,
+                location    TEXT NOT NULL UNIQUE,
+                signature   TEXT NOT NULL UNIQUE
             )",
             params![],
         )?;
