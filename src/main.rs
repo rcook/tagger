@@ -10,7 +10,7 @@ use std::env::{args, current_dir};
 use std::path::Path;
 
 use crate::error::Result;
-use crate::item::Item;
+use crate::item::{Item, Item2};
 use crate::walk::{ExtensionSet, SampleVisitor};
 
 #[derive(Debug)]
@@ -20,7 +20,8 @@ pub struct Record {
     pub signature: String,
 }
 
-fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
+#[allow(dead_code)]
+fn do_report(conn: &Connection, start_dir: &Path) -> Result<()> {
     let visitor = SampleVisitor::new(ExtensionSet::new(&["aiff", "wav"]));
 
     println!("Scanning {}", start_dir.to_str()?);
@@ -29,7 +30,28 @@ fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
         let p = entry.path();
         println!("Found {}", p.to_str()?);
         let item = Item::from_file(start_dir, &p)?;
-        item.insert(&conn)?;
+        let existing_item = Item2::get_by_location(&conn, &item)?;
+        match existing_item {
+            Some(x) => println!("count={:?} match={}", x, x.signatures_eq(&item)),
+            None => println!("Item not found"),
+        }
+        Ok(())
+    })?;
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn do_force_update(conn: &Connection, start_dir: &Path) -> Result<()> {
+    let visitor = SampleVisitor::new(ExtensionSet::new(&["aiff", "wav"]));
+
+    println!("Scanning {}", start_dir.to_str()?);
+
+    visitor.visit(&start_dir, &|entry| {
+        let p = entry.path();
+        println!("Found {}", p.to_str()?);
+        let item = Item::from_file(start_dir, &p)?;
+        item.upsert(&conn)?;
         Ok(())
     })?;
 
@@ -65,7 +87,8 @@ fn main() -> Result<()> {
             params![],
         )?;
 
-        do_walk(&conn, &project_dir)?;
+        do_report(&conn, &project_dir)?;
+        //do_force_update(&conn, &project_dir)?;
     }
     Ok(())
 }

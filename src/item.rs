@@ -1,6 +1,5 @@
-use generic_array::GenericArray;
-use rusqlite::types::{ToSql, ToSqlOutput};
-use rusqlite::{params, Connection};
+use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
+use rusqlite::{params, Connection, OptionalExtension};
 use sha2::{Digest, Sha256};
 use std::fs::File;
 use std::io::copy;
@@ -8,7 +7,55 @@ use std::path::Path;
 
 use crate::error::Result;
 
-pub type Hash = GenericArray<u8, <Sha256 as Digest>::OutputSize>;
+#[derive(Debug)]
+pub struct Item2 {
+    id: i32,
+    location: Location,
+    signature: Signature,
+}
+
+impl Item2 {
+    #[allow(dead_code)]
+    pub fn all_by_location(conn: &Connection, item: &Item) -> Result<Vec<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+        let record_iter = stmt.query_map(params![item.location], |row| {
+            Ok(Self {
+                id: row.get(0)?,
+                location: row.get(1)?,
+                signature: row.get(2)?,
+            })
+        })?;
+
+        let mut items = Vec::new();
+        for record in record_iter {
+            items.push(record?)
+        }
+
+        Ok(items)
+    }
+
+    #[allow(dead_code)]
+    pub fn get_by_location(conn: &Connection, item: &Item) -> Result<Option<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+        let record = stmt
+            .query_row(params![item.location], |row| {
+                Ok(Self {
+                    id: row.get(0)?,
+                    location: row.get(1)?,
+                    signature: row.get(2)?,
+                })
+            })
+            .optional()?;
+        Ok(record)
+    }
+
+    #[allow(dead_code)]
+    pub fn signatures_eq(&self, item: &Item) -> bool {
+        self.signature.eq(&item.signature)
+    }
+}
 
 pub struct Item {
     location: Location,
@@ -23,10 +70,11 @@ impl Item {
         })
     }
 
+    #[allow(dead_code)]
     pub fn insert(&self, conn: &Connection) -> Result<()> {
         conn.execute(
             "INSERT INTO items (location, signature) VALUES (?1, ?2)",
-            params![self.location.to_str(), self.signature],
+            params![self.location, self.signature],
         )?;
         Ok(())
     }
@@ -34,14 +82,15 @@ impl Item {
     #[allow(dead_code)]
     pub fn upsert(&self, conn: &Connection) -> Result<()> {
         conn.execute(
-            "INSERT INTO items (location, signature) VALUES (?1, ?2, ?3)
-                ON CONFLICT(location) DO UPDATE SET hash = ?2, size = ?3",
+            "INSERT INTO items (location, signature) VALUES (?1, ?2)
+                ON CONFLICT(location) DO UPDATE SET signature = ?2",
             params![self.location, self.signature],
         )?;
         Ok(())
     }
 }
 
+#[derive(Debug)]
 pub struct Location {
     value: String,
 }
@@ -53,8 +102,16 @@ impl Location {
         })
     }
 
-    pub fn to_str(&self) -> &str {
-        &self.value
+    fn new(value: &str) -> Self {
+        Self {
+            value: String::from(value),
+        }
+    }
+}
+
+impl FromSql for Location {
+    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
+        value.as_str().and_then(|s| Ok(Self::new(s)))
     }
 }
 
@@ -76,9 +133,9 @@ mod tests {
     }
 }
 
+#[derive(Debug)]
 pub struct Signature {
-    hash: Hash,
-    size: u64,
+    value: String,
 }
 
 impl Signature {
@@ -89,15 +146,29 @@ impl Signature {
         copy(&mut f, &mut hasher)?;
         let hash = hasher.finalize();
         Ok(Self {
-            hash: hash,
-            size: size,
+            value: format!("{:x}:{}", hash, size),
         })
+    }
+
+    fn new(value: &str) -> Self {
+        Self {
+            value: String::from(value),
+        }
+    }
+
+    fn eq(&self, other: &Signature) -> bool {
+        self.value.eq(&other.value)
+    }
+}
+
+impl FromSql for Signature {
+    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
+        value.as_str().and_then(|s| Ok(Self::new(s)))
     }
 }
 
 impl ToSql for Signature {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
-        let signature_str = format!("{:x}:{}", self.hash, self.size);
-        Ok(ToSqlOutput::from(signature_str))
+        Ok(ToSqlOutput::from(self.value.as_str()))
     }
 }
