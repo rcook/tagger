@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 absolute-path = { git = "https://github.com/rcook/absolute-path.git", rev = "aca86cfb77bfea08632d1fe49a61092a19a10310" }
-dirs = "3.0.1"
+#dirs = "3.0.1"
 generic-array = "0.14.4"
 rusqlite = { version = "0.24.2", features = ["bundled"] } # https://www.davideaversa.it/blog/build-rusqlite-windows/
 sha2 = "0.9.3"

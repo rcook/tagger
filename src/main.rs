@@ -5,7 +5,6 @@ mod item;
 mod walk;
 
 use absolute_path::absolute_path;
-use dirs::home_dir;
 use rusqlite::{params, Connection};
 use std::env::{args, current_dir};
 use std::path::Path;
@@ -45,23 +44,23 @@ fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    let db_path = home_dir()?.join("tagger.db");
-    let conn = Connection::open(db_path)?;
-
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS items (
-            id      INTEGER PRIMARY KEY,
-            path    TEXT NOT NULL UNIQUE,
-            hash    TEXT NOT NULL,
-            size    INTEGER NOT NULL
-        )",
-        params![],
-    )?;
-
-    let dir = current_dir()?;
+    let base_dir = current_dir()?;
     for arg in args().skip(1) {
-        let p = absolute_path(&dir, Path::new(&arg))?;
-        do_walk(&conn, &p)?;
+        let project_dir = absolute_path(&base_dir, Path::new(&arg))?;
+        let db_path = project_dir.join("tagger.db");
+
+        let conn = Connection::open(db_path)?;
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS items (
+                id      INTEGER PRIMARY KEY,
+                path    TEXT NOT NULL UNIQUE,
+                hash    TEXT NOT NULL,
+                size    INTEGER NOT NULL
+            )",
+            params![],
+        )?;
+
+        do_walk(&conn, &project_dir)?;
     }
     Ok(())
 }
