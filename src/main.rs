@@ -99,6 +99,23 @@ fn main() -> Result<()> {
             )",
             params![],
         )?;
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS tags (
+                id          INTEGER PRIMARY KEY,
+                name        TEXT NOT NULL UNIQUE
+            )",
+            params![],
+        )?;
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS item_tags (
+                id          INTEGER PRIMARY KEY,
+                item_id     INTEGER NOT NULL,
+                tag_id      INTEGER NOT NULL,
+                FOREIGN KEY(item_id) REFERENCES items(id),
+                FOREIGN KEY(tag_id) REFERENCES tags(id)
+            )",
+            params![],
+        )?;
 
         do_report(&conn, &project_dir)?;
         //do_force_update(&conn, &project_dir)?;
