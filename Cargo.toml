@@ -8,4 +8,5 @@ edition = "2018"
 
 [dependencies]
 dirs = "3.0.1"
+rusqlite = { version = "0.24.2", features = ["bundled"] } # https://www.davideaversa.it/blog/build-rusqlite-windows/
 sha2 = "0.9.3"

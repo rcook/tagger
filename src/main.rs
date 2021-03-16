@@ -1,9 +1,11 @@
+mod db;
 mod walk;
 
 use sha2::{Digest, Sha256};
 use std::fs::File;
 use std::io;
 
+use crate::db::do_db;
 use crate::walk::{ExtensionSet, SampleVisitor};
 
 fn do_walk() -> io::Result<()> {
@@ -33,5 +35,7 @@ fn do_walk() -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
-    do_walk()
+    //do_walk()
+    do_db().expect("database test failed");
+    Ok(())
 }
