@@ -23,7 +23,7 @@ fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
         let p = entry.path();
         println!("Found {}", p.to_str()?);
         let item = Item::from_file(start_dir, &p)?;
-        item.save(&conn)?;
+        item.insert(&conn)?;
         Ok(())
     })?;
 

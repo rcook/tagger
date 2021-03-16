@@ -38,9 +38,18 @@ impl Item {
         })
     }
 
-    pub fn save(&self, conn: &Connection) -> Result<()> {
+    pub fn insert(&self, conn: &Connection) -> Result<()> {
         conn.execute(
             "INSERT INTO items (path, hash, size) VALUES (?1, ?2, ?3)",
+            params![self.path.to_str(), format!("{:x}", self.hash), self.size],
+        )?;
+        Ok(())
+    }
+
+    pub fn upsert(&self, conn: &Connection) -> Result<()> {
+        conn.execute(
+            "INSERT INTO items (path, hash, size) VALUES (?1, ?2, ?3)
+                ON CONFLICT(path) DO UPDATE SET hash = ?2, size = ?3",
             params![self.path.to_str(), format!("{:x}", self.hash), self.size],
         )?;
         Ok(())
