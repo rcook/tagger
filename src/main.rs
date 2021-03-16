@@ -5,6 +5,7 @@ mod item;
 mod walk;
 
 use absolute_path::absolute_path;
+use dirs::home_dir;
 use rusqlite::{params, Connection};
 use std::env::{args, current_dir};
 use std::path::Path;
@@ -13,22 +14,10 @@ use crate::error::Result;
 use crate::item::{Item, ItemRecord};
 use crate::walk::{ExtensionSet, SampleVisitor};
 
-fn do_walk(start_dir: &Path) -> Result<()> {
+fn do_walk(conn: &Connection, start_dir: &Path) -> Result<()> {
     let visitor = SampleVisitor::new(ExtensionSet::new(&["aiff", "wav"]));
 
     println!("Scanning {}", start_dir.to_str()?);
-
-    let conn = Connection::open_in_memory()?;
-
-    conn.execute(
-        "CREATE TABLE items (
-            id      INTEGER PRIMARY KEY,
-            path    TEXT NOT NULL,
-            hash    TEXT NOT NULL,
-            size    INTEGER NOT NULL
-        )",
-        params![],
-    )?;
 
     visitor.visit(&start_dir, &|entry| {
         let p = entry.path();
@@ -56,10 +45,23 @@ fn do_walk(start_dir: &Path) -> Result<()> {
 }
 
 fn main() -> Result<()> {
+    let db_path = home_dir()?.join("tagger.db");
+    let conn = Connection::open(db_path)?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS items (
+            id      INTEGER PRIMARY KEY,
+            path    TEXT NOT NULL UNIQUE,
+            hash    TEXT NOT NULL,
+            size    INTEGER NOT NULL
+        )",
+        params![],
+    )?;
+
     let dir = current_dir()?;
     for arg in args().skip(1) {
         let p = absolute_path(&dir, Path::new(&arg))?;
-        do_walk(&p)?;
+        do_walk(&conn, &p)?;
     }
     Ok(())
 }
