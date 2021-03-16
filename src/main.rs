@@ -1,7 +1,4 @@
-#![feature(osstring_ascii)]
-
 use std::collections::HashSet;
-use std::ffi::OsString;
 use std::fs::{self, DirEntry, File};
 use std::io;
 use std::path::Path;
@@ -10,21 +7,25 @@ use dirs;
 use sha2::{Digest, Sha256};
 
 struct ExtensionSet {
-    extensions: HashSet<OsString>,
+    extensions: HashSet<String>,
 }
 
 impl ExtensionSet {
     fn new(values: &[&'static str]) -> Self {
         let mut h = HashSet::new();
         for x in values {
-            h.insert(OsString::from(x.to_lowercase()));
+            h.insert(x.to_lowercase());
         }
         Self { extensions: h }
     }
 
     fn matches(&self, path: &Path) -> bool {
         match path.extension() {
-            Some(x) => self.extensions.contains(&x.to_ascii_lowercase()),
+            Some(x) => self.extensions.contains(
+                &x.to_str()
+                    .expect("could not convert extension")
+                    .to_lowercase(),
+            ),
             None => false,
         }
     }
