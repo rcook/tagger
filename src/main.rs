@@ -65,6 +65,10 @@ fn main() -> io::Result<()> {
 
     let home_dir = dirs::home_dir().expect("could not determine home directory");
 
+    println!(
+        "Scanning {}",
+        home_dir.to_str().expect("could not convert path")
+    );
     visitor.visit(&home_dir, &|entry| {
         let p = entry.path();
         let mut file = File::open(&p)?;
