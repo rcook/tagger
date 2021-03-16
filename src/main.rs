@@ -30,9 +30,22 @@ fn do_report(conn: &Connection, start_dir: &Path) -> Result<()> {
         let p = entry.path();
         println!("Found {}", p.to_str()?);
         let item = Item::from_file(start_dir, &p)?;
-        let existing_item = Item2::get_by_location(&conn, &item)?;
-        match existing_item {
-            Some(x) => println!("count={:?} match={}", x, x.signatures_eq(&item)),
+        let item_by_location = Item2::by_location(&conn, &item)?;
+        match item_by_location {
+            Some(x) => println!(
+                "With same location: {:?} signatures_match={}",
+                x,
+                x.signatures_eq(&item)
+            ),
+            None => println!("Item not found"),
+        }
+        let item_by_signature = Item2::by_signature(&conn, &item)?;
+        match item_by_signature {
+            Some(x) => println!(
+                "With same signature: {:?} locations_match={}",
+                x,
+                x.locations_eq(&item)
+            ),
             None => println!("Item not found"),
         }
         Ok(())

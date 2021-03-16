@@ -1,5 +1,5 @@
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, Connection, OptionalExtension, Statement};
 use sha2::{Digest, Sha256};
 use std::fs::File;
 use std::io::copy;
@@ -35,25 +35,36 @@ impl Item2 {
         Ok(items)
     }
 
-    #[allow(dead_code)]
-    pub fn get_by_location(conn: &Connection, item: &Item) -> Result<Option<Self>> {
+    pub fn by_location(conn: &Connection, item: &Item) -> Result<Option<Self>> {
         let mut stmt =
             conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
-        let record = stmt
-            .query_row(params![item.location], |row| {
+        Self::query_single(&mut stmt, params![item.location])
+    }
+
+    pub fn by_signature(conn: &Connection, item: &Item) -> Result<Option<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE signature = ?1")?;
+        Self::query_single(&mut stmt, params![item.signature])
+    }
+
+    pub fn signatures_eq(&self, item: &Item) -> bool {
+        self.signature.eq(&item.signature)
+    }
+
+    pub fn locations_eq(&self, item: &Item) -> bool {
+        self.location.eq(&item.location)
+    }
+
+    fn query_single(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Option<Self>> {
+        Ok(stmt
+            .query_row(params, |row| {
                 Ok(Self {
                     id: row.get(0)?,
                     location: row.get(1)?,
                     signature: row.get(2)?,
                 })
             })
-            .optional()?;
-        Ok(record)
-    }
-
-    #[allow(dead_code)]
-    pub fn signatures_eq(&self, item: &Item) -> bool {
-        self.signature.eq(&item.signature)
+            .optional()?)
     }
 }
 
@@ -107,6 +118,10 @@ impl Location {
             value: String::from(value),
         }
     }
+
+    fn eq(&self, other: &Location) -> bool {
+        self.value.eq(&other.value)
+    }
 }
 
 impl FromSql for Location {
@@ -118,18 +133,6 @@ impl FromSql for Location {
 impl ToSql for Location {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
         Ok(ToSqlOutput::from(self.value.as_str()))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_from() -> Result<()> {
-        let item_path = Location::from(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
-        assert_eq!("aaa/bbb", item_path.to_str());
-        Ok(())
     }
 }
 
@@ -170,5 +173,17 @@ impl FromSql for Signature {
 impl ToSql for Signature {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
         Ok(ToSqlOutput::from(self.value.as_str()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from() -> Result<()> {
+        let item_path = Location::from(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
+        assert_eq!("aaa/bbb", item_path.to_str());
+        Ok(())
     }
 }
