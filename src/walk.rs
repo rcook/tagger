@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 use std::fs::{self, DirEntry};
-use std::io;
 use std::path::Path;
+
+use crate::error::Result;
 
 pub struct ExtensionSet {
     extensions: HashSet<String>,
@@ -39,7 +40,7 @@ impl SampleVisitor {
         }
     }
 
-    pub fn visit(&self, dir: &Path, cb: &dyn Fn(&DirEntry) -> io::Result<()>) -> io::Result<()> {
+    pub fn visit(&self, dir: &Path, cb: &dyn Fn(&DirEntry) -> Result<()>) -> Result<()> {
         if dir.is_dir() {
             for entry in fs::read_dir(dir)? {
                 let entry = entry?;
