@@ -9,7 +9,13 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn from(base: &Path, path: &Path) -> Result<Self> {
+    pub fn new(value: &str) -> Self {
+        Self {
+            value: String::from(value),
+        }
+    }
+
+    pub fn from_path(base: &Path, path: &Path) -> Result<Self> {
         Ok(Self {
             value: path.strip_prefix(base)?.to_str()?.to_string(),
         })
@@ -17,12 +23,6 @@ impl Location {
 
     pub fn eq(&self, other: &Location) -> bool {
         self.value.eq(&other.value)
-    }
-
-    fn new(value: &str) -> Self {
-        Self {
-            value: String::from(value),
-        }
     }
 }
 
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn test_from() -> Result<()> {
-        let location = Location::from(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
+        let location = Location::from_path(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
         assert_eq!("aaa/bbb", location.value);
         Ok(())
     }

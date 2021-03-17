@@ -9,7 +9,6 @@ where
     Error::Internal(facility, message.into())
 }
 
-#[allow(dead_code)]
 pub fn user_error<S>(message: S) -> Error
 where
     S: Into<String>,

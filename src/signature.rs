@@ -12,6 +12,12 @@ pub struct Signature {
 }
 
 impl Signature {
+    pub fn new(value: &str) -> Self {
+        Self {
+            value: String::from(value),
+        }
+    }
+
     pub fn from_file(path: &Path) -> Result<Self> {
         let mut f = File::open(&path)?;
         let size = f.metadata()?.len();
@@ -25,12 +31,6 @@ impl Signature {
 
     pub fn eq(&self, other: &Signature) -> bool {
         self.value.eq(&other.value)
-    }
-
-    fn new(value: &str) -> Self {
-        Self {
-            value: String::from(value),
-        }
     }
 }
 

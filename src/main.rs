@@ -1,4 +1,5 @@
 #![feature(try_trait)]
+#![allow(dead_code)]
 
 mod cli;
 mod db;

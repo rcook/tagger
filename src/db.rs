@@ -56,7 +56,6 @@ pub fn create_schema(conn: &Connection) -> Result<()> {
 }
 
 impl Item {
-    #[allow(dead_code)]
     pub fn insert(conn: &Connection, item: &item::Item) -> Result<()> {
         conn.execute(
             "INSERT INTO items (location, signature) VALUES (?1, ?2)",
@@ -91,7 +90,6 @@ impl Item {
         Self::query_multi(&mut stmt, params![])
     }
 
-    #[allow(dead_code)]
     pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
         let mut stmt =
             conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
@@ -182,10 +180,20 @@ mod tests {
     #[test]
     fn basics() -> Result<()> {
         let conn = Connection::open_in_memory()?;
+
         create_schema(&conn)?;
-        Item::all(&conn)?;
-        Tag::all(&conn)?;
-        ItemTag::all(&conn)?;
+
+        assert!(Item::all(&conn)?.is_empty());
+        assert!(Tag::all(&conn)?.is_empty());
+        assert!(ItemTag::all(&conn)?.is_empty());
+
+        Item::insert(
+            &conn,
+            &item::Item::new(Location::new("LOCATION"), Signature::new("SIGNATURE")),
+        )?;
+
+        assert_eq!(1, Item::all(&conn)?.len());
+
         Ok(())
     }
 }
