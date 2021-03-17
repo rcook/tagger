@@ -1,7 +1,7 @@
 #![feature(try_trait)]
 
 mod cli;
-mod data;
+mod db;
 mod error;
 mod item;
 mod location;
@@ -43,7 +43,7 @@ fn do_dump(project: &Project) -> Result<()> {
     println!("Items:");
     let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
     let items_iter = stmt.query_map(params![], |row| {
-        Ok(data::Item {
+        Ok(db::Item {
             id: row.get(0)?,
             location: row.get(1)?,
             signature: row.get(2)?,
@@ -57,7 +57,7 @@ fn do_dump(project: &Project) -> Result<()> {
     println!("Tags:");
     let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
     let tags_iter = stmt.query_map(params![], |row| {
-        Ok(data::Tag {
+        Ok(db::Tag {
             id: row.get(0)?,
             name: row.get(1)?,
         })
@@ -70,7 +70,7 @@ fn do_dump(project: &Project) -> Result<()> {
     println!("Item tags:");
     let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
     let item_tags_iter = stmt.query_map(params![], |row| {
-        Ok(data::ItemTag {
+        Ok(db::ItemTag {
             id: row.get(0)?,
             item_id: row.get(1)?,
             tag_id: row.get(2)?,
@@ -108,7 +108,7 @@ fn do_report(project: &Project) -> Result<()> {
             let p = entry.path();
             println!("Found {}", p.to_str()?);
             let item = Item::from_file(&project.dir, &p)?;
-            let item_by_location = data::Item::by_location(&conn, &item.location)?;
+            let item_by_location = db::Item::by_location(&conn, &item.location)?;
             match item_by_location {
                 Some(x) => println!(
                     "With same location: {:?} signatures_match={}",
@@ -117,7 +117,7 @@ fn do_report(project: &Project) -> Result<()> {
                 ),
                 None => println!("Item not found"),
             }
-            let item_by_signature = data::Item::by_signature(&conn, &item.signature)?;
+            let item_by_signature = db::Item::by_signature(&conn, &item.signature)?;
             match item_by_signature {
                 Some(x) => println!(
                     "With same signature: {:?} locations_match={}",
