@@ -8,8 +8,8 @@ use crate::signature::Signature;
 #[derive(Debug)]
 pub struct Item {
     pub id: i32,
-    pub location: String,
-    pub signature: String,
+    pub location: Location,
+    pub signature: Signature,
 }
 
 #[derive(Debug)]
@@ -25,14 +25,7 @@ pub struct ItemTag {
     pub tag_id: i32,
 }
 
-#[derive(Debug)]
-pub struct Item2 {
-    pub id: i32,
-    pub location: Location,
-    pub signature: Signature,
-}
-
-impl Item2 {
+impl Item {
     #[allow(dead_code)]
     pub fn all_by_location(conn: &Connection, item: &Item) -> Result<Vec<Self>> {
         let mut stmt =

@@ -14,7 +14,6 @@ use rusqlite::params;
 use std::env::current_dir;
 
 use crate::cli::{arg, command, make_app};
-use crate::data::Item2;
 use crate::error::{user_error_result, Result};
 use crate::item::Item;
 use crate::project::Project;
@@ -103,7 +102,7 @@ fn do_report(project: &Project) -> Result<()> {
             let p = entry.path();
             println!("Found {}", p.to_str()?);
             let item = Item::from_file(&project.dir, &p)?;
-            let item_by_location = Item2::by_location(&conn, &item.location)?;
+            let item_by_location = data::Item::by_location(&conn, &item.location)?;
             match item_by_location {
                 Some(x) => println!(
                     "With same location: {:?} signatures_match={}",
@@ -112,7 +111,7 @@ fn do_report(project: &Project) -> Result<()> {
                 ),
                 None => println!("Item not found"),
             }
-            let item_by_signature = Item2::by_signature(&conn, &item.signature)?;
+            let item_by_signature = data::Item::by_signature(&conn, &item.signature)?;
             match item_by_signature {
                 Some(x) => println!(
                     "With same signature: {:?} locations_match={}",
