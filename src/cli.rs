@@ -24,7 +24,8 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .help("Path to project directory")
                 .long(DIR)
                 .value_name("PROJECT-DIR")
-                .takes_value(true),
+                .takes_value(true)
+                .default_value("."),
         )
         .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
         .subcommand(SubCommand::with_name(REBUILD).about("Scan project and rebuild database"))

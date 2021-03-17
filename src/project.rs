@@ -8,7 +8,7 @@ use crate::sample_visitor::SampleVisitor;
 
 pub struct Project {
     pub dir: PathBuf,
-    db_path: PathBuf,
+    pub db_path: PathBuf,
 }
 
 impl Project {
