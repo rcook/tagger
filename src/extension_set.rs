@@ -1,8 +1,5 @@
 use std::collections::HashSet;
-use std::fs::{self, DirEntry};
 use std::path::Path;
-
-use crate::error::Result;
 
 pub struct ExtensionSet {
     extensions: HashSet<String>,
@@ -17,7 +14,7 @@ impl ExtensionSet {
         Self { extensions: h }
     }
 
-    fn matches(&self, path: &Path) -> bool {
+    pub fn matches(&self, path: &Path) -> bool {
         match path.extension() {
             Some(x) => self.extensions.contains(
                 &x.to_str()
@@ -26,35 +23,6 @@ impl ExtensionSet {
             ),
             None => false,
         }
-    }
-}
-
-pub struct SampleVisitor {
-    extensions: ExtensionSet,
-}
-
-impl SampleVisitor {
-    pub fn new(extensions: ExtensionSet) -> Self {
-        Self {
-            extensions: extensions,
-        }
-    }
-
-    pub fn visit(&self, dir: &Path, cb: &dyn Fn(&DirEntry) -> Result<()>) -> Result<()> {
-        if dir.is_dir() {
-            for entry in fs::read_dir(dir)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() {
-                    self.visit(&path, cb)?;
-                } else {
-                    if self.extensions.matches(&path) {
-                        cb(&entry)?;
-                    }
-                }
-            }
-        }
-        Ok(())
     }
 }
 

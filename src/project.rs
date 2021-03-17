@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use crate::db::create_schema;
 use crate::error::Result;
-use crate::walk::{ExtensionSet, SampleVisitor};
+use crate::extension_set::ExtensionSet;
+use crate::sample_visitor::SampleVisitor;
 
 pub struct Project {
     pub dir: PathBuf,

@@ -3,11 +3,12 @@
 mod cli;
 mod db;
 mod error;
+mod extension_set;
 mod item;
 mod location;
 mod project;
+mod sample_visitor;
 mod signature;
-mod walk;
 
 use absolute_path::absolute_path;
 use std::env::current_dir;
