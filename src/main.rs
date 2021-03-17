@@ -92,7 +92,7 @@ fn do_rebuild(project: &Project) -> Result<()> {
     project
         .create_sample_visitor()
         .visit(&project.dir, &|entry| {
-            Item::from_file(&project.dir, &entry.path())?.upsert(&conn)?;
+            db::Item::upsert(&conn, &Item::from_file(&project.dir, &entry.path())?)?;
             Ok(())
         })?;
     Ok(())
@@ -113,7 +113,7 @@ fn do_report(project: &Project) -> Result<()> {
                 Some(x) => println!(
                     "With same location: {:?} signatures_match={}",
                     x,
-                    x.signatures_eq(&item.signature)
+                    x.signature.eq(&item.signature)
                 ),
                 None => println!("Item not found"),
             }
@@ -122,7 +122,7 @@ fn do_report(project: &Project) -> Result<()> {
                 Some(x) => println!(
                     "With same signature: {:?} locations_match={}",
                     x,
-                    x.locations_eq(&item.location)
+                    x.location.eq(&item.location)
                 ),
                 None => println!("Item not found"),
             }
