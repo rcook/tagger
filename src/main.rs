@@ -1,9 +1,12 @@
 #![feature(try_trait)]
 
 mod cli;
+mod data;
 mod error;
 mod item;
+mod location;
 mod project;
+mod signature;
 mod walk;
 
 use absolute_path::absolute_path;
@@ -11,8 +14,9 @@ use rusqlite::params;
 use std::env::current_dir;
 
 use crate::cli::{arg, command, make_app};
+use crate::data::Item2;
 use crate::error::{user_error_result, Result};
-use crate::item::{Item, Item2};
+use crate::item::Item;
 use crate::project::Project;
 
 fn main() -> Result<()> {
@@ -35,32 +39,12 @@ fn main() -> Result<()> {
 }
 
 fn do_dump(project: &Project) -> Result<()> {
-    #[derive(Debug)]
-    pub struct ItemRecord {
-        pub id: i32,
-        pub location: String,
-        pub signature: String,
-    }
-
-    #[derive(Debug)]
-    struct TagRecord {
-        id: i32,
-        name: String,
-    }
-
-    #[derive(Debug)]
-    struct ItemTagRecord {
-        id: i32,
-        item_id: i32,
-        tag_id: i32,
-    }
-
     let conn = project.open_db_connection()?;
 
     println!("Items:");
     let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
     let items_iter = stmt.query_map(params![], |row| {
-        Ok(ItemRecord {
+        Ok(data::Item {
             id: row.get(0)?,
             location: row.get(1)?,
             signature: row.get(2)?,
@@ -73,7 +57,7 @@ fn do_dump(project: &Project) -> Result<()> {
     println!("Tags:");
     let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
     let tags_iter = stmt.query_map(params![], |row| {
-        Ok(TagRecord {
+        Ok(data::Tag {
             id: row.get(0)?,
             name: row.get(1)?,
         })
@@ -85,7 +69,7 @@ fn do_dump(project: &Project) -> Result<()> {
     println!("Item tags:");
     let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
     let item_tags_iter = stmt.query_map(params![], |row| {
-        Ok(ItemTagRecord {
+        Ok(data::ItemTag {
             id: row.get(0)?,
             item_id: row.get(1)?,
             tag_id: row.get(2)?,
@@ -119,21 +103,21 @@ fn do_report(project: &Project) -> Result<()> {
             let p = entry.path();
             println!("Found {}", p.to_str()?);
             let item = Item::from_file(&project.dir, &p)?;
-            let item_by_location = Item2::by_location(&conn, &item)?;
+            let item_by_location = Item2::by_location(&conn, &item.location)?;
             match item_by_location {
                 Some(x) => println!(
                     "With same location: {:?} signatures_match={}",
                     x,
-                    x.signatures_eq(&item)
+                    x.signatures_eq(&item.signature)
                 ),
                 None => println!("Item not found"),
             }
-            let item_by_signature = Item2::by_signature(&conn, &item)?;
+            let item_by_signature = Item2::by_signature(&conn, &item.signature)?;
             match item_by_signature {
                 Some(x) => println!(
                     "With same signature: {:?} locations_match={}",
                     x,
-                    x.locations_eq(&item)
+                    x.locations_eq(&item.location)
                 ),
                 None => println!("Item not found"),
             }
