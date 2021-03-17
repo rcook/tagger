@@ -49,8 +49,9 @@ fn do_dump(project: &Project) -> Result<()> {
             signature: row.get(2)?,
         })
     })?;
-    for item in items_iter {
-        println!("  {:?}", item.unwrap());
+    for item_opt in items_iter {
+        let item = item_opt?;
+        println!("  ({}): {:?}, {:?}", item.id, item.location, item.signature);
     }
 
     println!("Tags:");
@@ -61,8 +62,9 @@ fn do_dump(project: &Project) -> Result<()> {
             name: row.get(1)?,
         })
     })?;
-    for tag in tags_iter {
-        println!("  {:?}", tag.unwrap());
+    for tag_opt in tags_iter {
+        let tag = tag_opt?;
+        println!("  ({}): {}", tag.id, tag.name);
     }
 
     println!("Item tags:");
@@ -74,8 +76,12 @@ fn do_dump(project: &Project) -> Result<()> {
             tag_id: row.get(2)?,
         })
     })?;
-    for item_tag in item_tags_iter {
-        println!("  {:?}", item_tag.unwrap());
+    for item_tag_opt in item_tags_iter {
+        let item_tag = item_tag_opt?;
+        println!(
+            "  ({}): {}, {}",
+            item_tag.id, item_tag.item_id, item_tag.tag_id
+        );
     }
 
     Ok(())
