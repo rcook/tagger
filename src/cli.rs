@@ -2,6 +2,7 @@ use clap::{crate_authors, App, AppSettings, Arg, SubCommand};
 
 pub mod command {
     pub const GIT: &str = "git";
+    pub const DUMP: &str = "dump";
     pub const INFO: &str = "info";
     pub const INIT: &str = "init";
     pub const REBUILD: &str = "rebuild";
@@ -92,6 +93,7 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
             "Runs Git command in each project directory using system Git command",
             "Command to pass to Git",
         ))
+        .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
         .subcommand(
             SubCommand::with_name(INFO)
                 .about("Prints workspace and environment information")

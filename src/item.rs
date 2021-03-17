@@ -182,8 +182,8 @@ mod tests {
 
     #[test]
     fn test_from() -> Result<()> {
-        let item_path = Location::from(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
-        assert_eq!("aaa/bbb", item_path.to_str());
+        let location = Location::from(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
+        assert_eq!("aaa/bbb", location.value);
         Ok(())
     }
 }
