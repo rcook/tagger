@@ -153,7 +153,7 @@ impl Tag {
 
 impl ItemTag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM tags")?;
+        let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
         Self::query_multi(&mut stmt, params![])
     }
 
