@@ -9,6 +9,13 @@ where
     Error::Internal(facility, message.into())
 }
 
+pub fn internal_error_result<T, S>(facility: &'static str, message: S) -> Result<T>
+where
+    S: Into<String>,
+{
+    Err(Error::Internal(facility, message.into()))
+}
+
 pub fn user_error<S>(message: S) -> Error
 where
     S: Into<String>,

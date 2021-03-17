@@ -17,7 +17,7 @@ use std::env::current_dir;
 
 use crate::action::{do_dump, do_rebuild, do_report};
 use crate::cli::{arg, command, make_app};
-use crate::error::{user_error_result, Result};
+use crate::error::{internal_error_result, user_error_result, Result};
 use crate::project::Project;
 
 fn main() -> Result<()> {
@@ -32,9 +32,6 @@ fn main() -> Result<()> {
         (command::DUMP, _submatches) => do_dump(&project),
         (command::REBUILD, _submatches) => do_rebuild(&project),
         (command::REPORT, _submatches) => do_report(&project),
-        _ => {
-            println!("Not implemented!");
-            Ok(())
-        }
+        _ => internal_error_result("Tagger", "Not implemented!"),
     }
 }
