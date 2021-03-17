@@ -1,5 +1,8 @@
 # Tagger
 
+[![AppVeyor status for project](https://ci.appveyor.com/api/projects/status/9lnsi172m12l05gs?svg=true)](https://ci.appveyor.com/project/rcook/tagger)
+[![AppVeyor status for master branch](https://ci.appveyor.com/api/projects/status/9lnsi172m12l05gs/branch/master?svg=true)](https://ci.appveyor.com/project/rcook/tagger/branch/master)
+
 ## Prerequisites
 
 ### Cargo
