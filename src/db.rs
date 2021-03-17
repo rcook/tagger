@@ -174,3 +174,18 @@ impl ItemTag {
         Ok(item_tags)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basics() -> Result<()> {
+        let conn = Connection::open_in_memory()?;
+        create_schema(&conn)?;
+        Item::all(&conn)?;
+        Tag::all(&conn)?;
+        ItemTag::all(&conn)?;
+        Ok(())
+    }
+}
