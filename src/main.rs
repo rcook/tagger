@@ -10,7 +10,6 @@ mod signature;
 mod walk;
 
 use absolute_path::absolute_path;
-use rusqlite::params;
 use std::env::current_dir;
 
 use crate::cli::{arg, command, make_app};
@@ -41,43 +40,17 @@ fn do_dump(project: &Project) -> Result<()> {
     let conn = project.open_db_connection()?;
 
     println!("Items:");
-    let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
-    let items_iter = stmt.query_map(params![], |row| {
-        Ok(db::Item {
-            id: row.get(0)?,
-            location: row.get(1)?,
-            signature: row.get(2)?,
-        })
-    })?;
-    for item_opt in items_iter {
-        let item = item_opt?;
+    for item in db::Item::all(&conn)? {
         println!("  ({}): {:?}, {:?}", item.id, item.location, item.signature);
     }
 
     println!("Tags:");
-    let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
-    let tags_iter = stmt.query_map(params![], |row| {
-        Ok(db::Tag {
-            id: row.get(0)?,
-            name: row.get(1)?,
-        })
-    })?;
-    for tag_opt in tags_iter {
-        let tag = tag_opt?;
+    for tag in db::Tag::all(&conn)? {
         println!("  ({}): {}", tag.id, tag.name);
     }
 
     println!("Item tags:");
-    let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
-    let item_tags_iter = stmt.query_map(params![], |row| {
-        Ok(db::ItemTag {
-            id: row.get(0)?,
-            item_id: row.get(1)?,
-            tag_id: row.get(2)?,
-        })
-    })?;
-    for item_tag_opt in item_tags_iter {
-        let item_tag = item_tag_opt?;
+    for item_tag in db::ItemTag::all(&conn)? {
         println!(
             "  ({}): {}, {}",
             item_tag.id, item_tag.item_id, item_tag.tag_id

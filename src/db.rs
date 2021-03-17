@@ -74,26 +74,6 @@ impl Item {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
-        let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
-        let record_iter = stmt.query_map(params![location], |row| {
-            Ok(Self {
-                id: row.get(0)?,
-                location: row.get(1)?,
-                signature: row.get(2)?,
-            })
-        })?;
-
-        let mut items = Vec::new();
-        for record in record_iter {
-            items.push(record?)
-        }
-
-        Ok(items)
-    }
-
     pub fn by_location(conn: &Connection, location: &Location) -> Result<Option<Self>> {
         let mut stmt =
             conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
@@ -106,6 +86,18 @@ impl Item {
         Self::query_single(&mut stmt, params![signature])
     }
 
+    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
+        let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
+        Self::query_multi(&mut stmt, params![])
+    }
+
+    #[allow(dead_code)]
+    pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+        Self::query_multi(&mut stmt, params![location])
+    }
+
     fn query_single(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Option<Self>> {
         Ok(stmt
             .query_row(params, |row| {
@@ -116,5 +108,69 @@ impl Item {
                 })
             })
             .optional()?)
+    }
+
+    fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
+        let items_iter = stmt.query_map(params, |row| {
+            Ok(Self {
+                id: row.get(0)?,
+                location: row.get(1)?,
+                signature: row.get(2)?,
+            })
+        })?;
+
+        let mut items = Vec::new();
+        for item in items_iter {
+            items.push(item?)
+        }
+
+        Ok(items)
+    }
+}
+
+impl Tag {
+    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
+        let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
+        Self::query_multi(&mut stmt, params![])
+    }
+
+    fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
+        let tags_iter = stmt.query_map(params, |row| {
+            Ok(Self {
+                id: row.get(0)?,
+                name: row.get(1)?,
+            })
+        })?;
+
+        let mut tags = Vec::new();
+        for tag in tags_iter {
+            tags.push(tag?)
+        }
+
+        Ok(tags)
+    }
+}
+
+impl ItemTag {
+    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
+        let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM tags")?;
+        Self::query_multi(&mut stmt, params![])
+    }
+
+    fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
+        let item_tags_iter = stmt.query_map(params, |row| {
+            Ok(Self {
+                id: row.get(0)?,
+                item_id: row.get(1)?,
+                tag_id: row.get(2)?,
+            })
+        })?;
+
+        let mut item_tags = Vec::new();
+        for item_tag in item_tags_iter {
+            item_tags.push(item_tag?)
+        }
+
+        Ok(item_tags)
     }
 }
