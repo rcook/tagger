@@ -4,14 +4,14 @@ use crate::item::Item;
 use crate::project::Project;
 
 pub fn do_report(project: &Project) -> Result<()> {
-    println!("Scanning {}", project.dir.to_str()?);
+    println!("Scanning {}", project.dir.display());
 
     let conn = project.open_db_connection()?;
     project
         .create_sample_visitor()
         .visit(&project.dir, &|entry| {
             let p = entry.path();
-            println!("Found {}", p.to_str()?);
+            println!("Found {}", p.display());
             let item = Item::from_file(&project.dir, &p)?;
             let item_by_location = db::Item::by_location(&conn, &item.location)?;
             match item_by_location {

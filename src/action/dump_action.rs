@@ -5,12 +5,12 @@ use crate::project::Project;
 pub fn do_dump(project: &Project) -> Result<()> {
     let conn = project.open_db_connection()?;
 
-    println!("Project directory: {:?}", project.dir);
-    println!("Database path: {:?}", project.db_path);
+    println!("Project directory: {}", project.dir.display());
+    println!("Database path: {}", project.db_path.display());
 
     println!("Items:");
     for item in db::Item::all(&conn)? {
-        println!("  ({}): {:?}, {:?}", item.id, item.location, item.signature);
+        println!("  ({}): {}, {}", item.id, item.location, item.signature);
     }
 
     println!("Tags:");
