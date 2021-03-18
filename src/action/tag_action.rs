@@ -15,6 +15,11 @@ pub fn do_tag(
     for tag in tags {
         db::Tag::upsert(&conn, tag)?
     }
+
+    for x in db::Tag::all_by_names(&conn, &tags.into_iter().map(|x| x.as_str()).collect()) {
+        println!("tag: {:?}", x)
+    }
+
     for path in paths {
         println!("path={:?}", path)
     }

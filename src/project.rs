@@ -22,6 +22,7 @@ impl Project {
 
     pub fn open_db_connection(&self) -> Result<Connection> {
         let conn = Connection::open(&self.db_path)?;
+        rusqlite::vtab::array::load_module(&conn)?;
         create_schema(&conn)?;
         Ok(conn)
     }

@@ -1,5 +1,6 @@
-use rusqlite::types::ToSql;
+use rusqlite::types::{ToSql, Value};
 use rusqlite::{params, Connection, OptionalExtension, Statement};
+use std::rc::Rc;
 
 use crate::error::Result;
 use crate::item;
@@ -128,6 +129,18 @@ impl Tag {
         Self::query_multi(&mut stmt, params![])
     }
 
+    pub fn all_by_names(conn: &Connection, names: &Vec<&str>) -> Result<Vec<Self>> {
+        let values = Rc::new(
+            names
+                .iter()
+                .copied()
+                .map(|x| Value::from(x.to_string()))
+                .collect::<Vec<Value>>(),
+        );
+        let mut stmt = conn.prepare("SELECT id, name FROM tags WHERE name IN RARRAY(?)")?;
+        Self::query_multi(&mut stmt, params![values])
+    }
+
     pub fn upsert(conn: &Connection, tag: &tag::Tag) -> Result<()> {
         conn.execute(
             "INSERT INTO tags (name) VALUES (?1)
@@ -175,6 +188,7 @@ mod tests {
     #[test]
     fn basics() -> Result<()> {
         let conn = Connection::open_in_memory()?;
+        rusqlite::vtab::array::load_module(&conn)?;
 
         create_schema(&conn)?;
 
@@ -188,6 +202,19 @@ mod tests {
         )?;
 
         assert_eq!(1, Item::all(&conn)?.len());
+
+        Tag::upsert(&conn, &tag::Tag::from("tag0"))?;
+        Tag::upsert(&conn, &tag::Tag::from("tag1"))?;
+        Tag::upsert(&conn, &tag::Tag::from("tag2"))?;
+
+        assert_eq!(3, Tag::all(&conn)?.len());
+
+        let tags = Tag::all_by_names(&conn, &vec!["tag0", "tag1"])?;
+        assert_eq!(2, tags.len());
+        assert_eq!(1, tags[0].id);
+        assert_eq!("tag0", tags[0].name);
+        assert_eq!(2, tags[1].id);
+        assert_eq!("tag1", tags[1].name);
 
         Ok(())
     }

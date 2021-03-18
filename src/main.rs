@@ -39,7 +39,7 @@ fn main() -> Result<()> {
         (command::TAG, Some(submatches)) => {
             let tags = submatches
                 .values_of(arg::TAG)?
-                .map(|x| Tag::from_str(x))
+                .map(|x| Tag::from(x))
                 .collect();
             let paths = submatches
                 .values_of(arg::PATHS)?
