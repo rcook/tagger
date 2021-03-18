@@ -15,7 +15,7 @@ impl Location {
         }
     }
 
-    pub fn from_path(base: &impl AsRef<Path>, path: &impl AsRef<Path>) -> Result<Self> {
+    pub fn from_path(base: impl AsRef<Path>, path: impl AsRef<Path>) -> Result<Self> {
         Ok(Self {
             value: path.as_ref().strip_prefix(base)?.to_str()?.to_string(),
         })
@@ -48,7 +48,7 @@ mod tests {
 
     #[test]
     fn test_from() -> Result<()> {
-        let location = Location::from_path(&Path::new("/foo/bar"), &Path::new("/foo/bar/aaa/bbb"))?;
+        let location = Location::from_path(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
         assert_eq!("aaa/bbb", location.value);
         Ok(())
     }
