@@ -10,7 +10,12 @@ pub fn do_dump(project: &Project) -> Result<()> {
 
     println!("Items:");
     for item in db::Item::all(&conn)? {
-        println!("  ({}): {}, {}", item.id, item.location, item.signature);
+        println!(
+            "  ({}): {}, {}",
+            item.id,
+            item.location.as_str(),
+            item.signature.as_str()
+        );
     }
 
     println!("Tags:");

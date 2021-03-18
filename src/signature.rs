@@ -1,7 +1,6 @@
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use sha2::{Digest, Sha256};
 use std::convert::TryFrom;
-use std::fmt;
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
@@ -19,6 +18,14 @@ impl Signature {
         copy(&mut f, &mut hasher)?;
         let hash = hasher.finalize();
         Ok(Self(format!("{:x}:{}", hash, size)))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub fn into_string(self) -> String {
+        self.0
     }
 
     pub fn eq(&self, other: &Signature) -> bool {
@@ -50,12 +57,6 @@ impl TryFrom<&str> for Signature {
     }
 }
 
-impl fmt::Display for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::convert::TryInto;
@@ -65,14 +66,14 @@ mod tests {
     #[test]
     fn test_try_from() -> Result<()> {
         let signature = Signature::try_from("SIGNATURE")?;
-        assert_eq!("SIGNATURE", signature.to_string());
+        assert_eq!("SIGNATURE", signature.as_str());
         Ok(())
     }
 
     #[test]
     fn test_try_info() -> Result<()> {
         let signature: Signature = "SIGNATURE".try_into()?;
-        assert_eq!("SIGNATURE", signature.to_string());
+        assert_eq!("SIGNATURE", signature.as_str());
         Ok(())
     }
 }

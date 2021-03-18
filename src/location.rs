@@ -1,6 +1,5 @@
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use std::convert::TryFrom;
-use std::fmt;
 use std::path::Path;
 
 use crate::error::{Error, Result};
@@ -13,6 +12,14 @@ impl Location {
         Ok(Self(
             path.as_ref().strip_prefix(base)?.to_str()?.to_string(),
         ))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub fn into_string(self) -> String {
+        self.0
     }
 
     pub fn eq(&self, other: &Location) -> bool {
@@ -44,12 +51,6 @@ impl TryFrom<&str> for Location {
     }
 }
 
-impl fmt::Display for Location {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::convert::TryInto;
@@ -59,21 +60,21 @@ mod tests {
     #[test]
     fn test_from_path() -> Result<()> {
         let location = Location::from_path(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
-        assert_eq!("aaa/bbb", location.to_string());
+        assert_eq!("aaa/bbb", location.as_str());
         Ok(())
     }
 
     #[test]
     fn test_try_from() -> Result<()> {
         let location = Location::try_from("LOCATION")?;
-        assert_eq!("LOCATION", location.to_string());
+        assert_eq!("LOCATION", location.as_str());
         Ok(())
     }
 
     #[test]
     fn test_try_info() -> Result<()> {
         let location: Location = "LOCATION".try_into()?;
-        assert_eq!("LOCATION", location.to_string());
+        assert_eq!("LOCATION", location.as_str());
         Ok(())
     }
 }
