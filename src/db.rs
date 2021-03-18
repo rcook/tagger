@@ -109,20 +109,15 @@ impl Item {
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
-        let items_iter = stmt.query_map(params, |row| {
-            Ok(Self {
-                id: row.get(0)?,
-                location: row.get(1)?,
-                signature: row.get(2)?,
-            })
-        })?;
-
-        let mut items = Vec::new();
-        for item in items_iter {
-            items.push(item?)
-        }
-
-        Ok(items)
+        Ok(stmt
+            .query_map(params, |row| {
+                Ok(Self {
+                    id: row.get(0)?,
+                    location: row.get(1)?,
+                    signature: row.get(2)?,
+                })
+            })?
+            .collect::<rusqlite::Result<_>>()?)
     }
 }
 
@@ -133,19 +128,14 @@ impl Tag {
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
-        let tags_iter = stmt.query_map(params, |row| {
-            Ok(Self {
-                id: row.get(0)?,
-                name: row.get(1)?,
-            })
-        })?;
-
-        let mut tags = Vec::new();
-        for tag in tags_iter {
-            tags.push(tag?)
-        }
-
-        Ok(tags)
+        Ok(stmt
+            .query_map(params, |row| {
+                Ok(Self {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                })
+            })?
+            .collect::<rusqlite::Result<_>>()?)
     }
 }
 
@@ -156,20 +146,15 @@ impl ItemTag {
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
-        let item_tags_iter = stmt.query_map(params, |row| {
-            Ok(Self {
-                id: row.get(0)?,
-                item_id: row.get(1)?,
-                tag_id: row.get(2)?,
-            })
-        })?;
-
-        let mut item_tags = Vec::new();
-        for item_tag in item_tags_iter {
-            item_tags.push(item_tag?)
-        }
-
-        Ok(item_tags)
+        Ok(stmt
+            .query_map(params, |row| {
+                Ok(Self {
+                    id: row.get(0)?,
+                    item_id: row.get(1)?,
+                    tag_id: row.get(2)?,
+                })
+            })?
+            .collect::<rusqlite::Result<_>>()?)
     }
 }
 
