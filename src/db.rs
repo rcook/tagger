@@ -50,7 +50,8 @@ pub fn create_schema(conn: &Connection) -> Result<()> {
             item_id     INTEGER NOT NULL,
             tag_id      INTEGER NOT NULL,
             FOREIGN KEY(item_id) REFERENCES items(id),
-            FOREIGN KEY(tag_id) REFERENCES tags(id)
+            FOREIGN KEY(tag_id) REFERENCES tags(id),
+            UNIQUE(item_id, tag_id)
         )",
         params![],
     )?;
@@ -67,6 +68,18 @@ impl Item {
         let mut stmt =
             conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
         Self::query_multi(&mut stmt, params![location])
+    }
+
+    pub fn all_by_locations(conn: &Connection, locations: &Vec<Location>) -> Result<Vec<Self>> {
+        let location_values = Rc::new(
+            locations
+                .iter()
+                .map(|x| Value::from(x.as_str().to_string()))
+                .collect::<Vec<Value>>(),
+        );
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE location IN RARRAY(?1)")?;
+        Self::query_multi(&mut stmt, params![location_values])
     }
 
     pub fn by_location(conn: &Connection, location: &Location) -> Result<Option<Self>> {
@@ -130,15 +143,15 @@ impl Tag {
     }
 
     pub fn all_by_names(conn: &Connection, names: &Vec<&str>) -> Result<Vec<Self>> {
-        let values = Rc::new(
+        let name_values = Rc::new(
             names
                 .iter()
                 .copied()
                 .map(|x| Value::from(x.to_string()))
                 .collect::<Vec<Value>>(),
         );
-        let mut stmt = conn.prepare("SELECT id, name FROM tags WHERE name IN RARRAY(?)")?;
-        Self::query_multi(&mut stmt, params![values])
+        let mut stmt = conn.prepare("SELECT id, name FROM tags WHERE name IN RARRAY(?1)")?;
+        Self::query_multi(&mut stmt, params![name_values])
     }
 
     pub fn upsert(conn: &Connection, tag: &tag::Tag) -> Result<()> {
@@ -166,6 +179,15 @@ impl ItemTag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
         Self::query_multi(&mut stmt, params![])
+    }
+
+    pub fn upsert(conn: &Connection, item_id: i32, tag_id: i32) -> Result<()> {
+        let mut stmt = conn.prepare(
+            "INSERT INTO item_tags (item_id, tag_id) VALUES (?1, ?2)
+                ON CONFLICT(item_id, tag_id) DO NOTHING",
+        )?;
+        stmt.execute(params![item_id, tag_id])?;
+        Ok(())
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
