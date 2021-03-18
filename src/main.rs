@@ -16,7 +16,7 @@ mod tag;
 use absolute_path::absolute_path;
 use std::env::current_dir;
 
-use crate::action::{do_dump, do_rebuild, do_report, do_tag};
+use crate::action::{do_dump, do_rebuild, do_report, do_search, do_tag};
 use crate::cli::{arg, command, make_app};
 use crate::error::{internal_error_result, user_error_result, Result};
 use crate::project::Project;
@@ -36,6 +36,13 @@ fn main() -> Result<()> {
         (command::DUMP, _submatches) => do_dump(&project),
         (command::REBUILD, _submatches) => do_rebuild(&project),
         (command::REPORT, _submatches) => do_report(&project),
+        (command::SEARCH, Some(submatches)) => {
+            let tags = submatches
+                .values_of(arg::TAG)?
+                .map(|x| Tag::from(x))
+                .collect();
+            do_search(&project, &tags)
+        }
         (command::TAG, Some(submatches)) => {
             let tags = submatches
                 .values_of(arg::TAG)?
