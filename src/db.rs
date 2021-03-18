@@ -5,6 +5,7 @@ use crate::error::Result;
 use crate::item;
 use crate::location::Location;
 use crate::signature::Signature;
+use crate::tag;
 
 #[derive(Debug)]
 pub struct Item {
@@ -56,6 +57,29 @@ pub fn create_schema(conn: &Connection) -> Result<()> {
 }
 
 impl Item {
+    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
+        let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
+        Self::query_multi(&mut stmt, params![])
+    }
+
+    pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+        Self::query_multi(&mut stmt, params![location])
+    }
+
+    pub fn by_location(conn: &Connection, location: &Location) -> Result<Option<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+        Self::query_single(&mut stmt, params![location])
+    }
+
+    pub fn by_signature(conn: &Connection, signature: &Signature) -> Result<Option<Self>> {
+        let mut stmt =
+            conn.prepare("SELECT id, location, signature FROM items WHERE signature = ?1")?;
+        Self::query_single(&mut stmt, params![signature])
+    }
+
     pub fn insert(conn: &Connection, item: &item::Item) -> Result<()> {
         conn.execute(
             "INSERT INTO items (location, signature) VALUES (?1, ?2)",
@@ -71,29 +95,6 @@ impl Item {
             params![item.location, item.signature],
         )?;
         Ok(())
-    }
-
-    pub fn by_location(conn: &Connection, location: &Location) -> Result<Option<Self>> {
-        let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
-        Self::query_single(&mut stmt, params![location])
-    }
-
-    pub fn by_signature(conn: &Connection, signature: &Signature) -> Result<Option<Self>> {
-        let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE signature = ?1")?;
-        Self::query_single(&mut stmt, params![signature])
-    }
-
-    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
-        Self::query_multi(&mut stmt, params![])
-    }
-
-    pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
-        let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
-        Self::query_multi(&mut stmt, params![location])
     }
 
     fn query_single(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Option<Self>> {
@@ -125,6 +126,15 @@ impl Tag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
         Self::query_multi(&mut stmt, params![])
+    }
+
+    pub fn upsert(conn: &Connection, tag: &tag::Tag) -> Result<()> {
+        conn.execute(
+            "INSERT INTO tags (name) VALUES (?1)
+                ON CONFLICT(name) DO NOTHING",
+            params![tag.as_str()],
+        )?;
+        Ok(())
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
