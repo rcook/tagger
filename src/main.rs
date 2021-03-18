@@ -8,6 +8,7 @@ mod action;
 mod cli;
 mod db;
 mod error;
+mod foo;
 mod item;
 mod location;
 mod media_path_checker;
