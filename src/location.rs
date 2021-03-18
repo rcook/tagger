@@ -15,10 +15,6 @@ impl Location {
         ))
     }
 
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-
     pub fn eq(&self, other: &Location) -> bool {
         self.0.eq(&other.0)
     }

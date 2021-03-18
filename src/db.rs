@@ -74,7 +74,7 @@ impl Item {
         let location_values = Rc::new(
             locations
                 .iter()
-                .map(|x| Value::from(x.as_str().to_string()))
+                .map(|x| Value::from(x.to_string()))
                 .collect::<Vec<Value>>(),
         );
         let mut stmt =
