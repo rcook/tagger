@@ -32,6 +32,6 @@ fn main() -> Result<()> {
         (command::DUMP, _submatches) => do_dump(&project),
         (command::REBUILD, _submatches) => do_rebuild(&project),
         (command::REPORT, _submatches) => do_report(&project),
-        _ => internal_error_result("Tagger", "Not implemented!"),
+        (c, _) => internal_error_result("Tagger", format!("Subcommand \"{}\" not implemented", c)),
     }
 }
