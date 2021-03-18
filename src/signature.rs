@@ -1,36 +1,32 @@
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use sha2::{Digest, Sha256};
+use std::convert::TryFrom;
+use std::fmt;
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 
 #[derive(Debug)]
-pub struct Signature {
-    value: String,
-}
+pub struct Signature(String);
 
 impl Signature {
-    pub fn new(value: &str) -> Self {
-        Self {
-            value: String::from(value),
-        }
-    }
-
     pub fn from_file(path: &Path) -> Result<Self> {
         let mut f = File::open(&path)?;
         let size = f.metadata()?.len();
         let mut hasher = Sha256::new();
         copy(&mut f, &mut hasher)?;
         let hash = hasher.finalize();
-        Ok(Self {
-            value: format!("{:x}:{}", hash, size),
-        })
+        Ok(Self(format!("{:x}:{}", hash, size)))
     }
 
     pub fn eq(&self, other: &Signature) -> bool {
-        self.value.eq(&other.value)
+        self.0.eq(&other.0)
+    }
+
+    fn new(value: &str) -> Self {
+        Self(String::from(value))
     }
 }
 
@@ -42,6 +38,41 @@ impl FromSql for Signature {
 
 impl ToSql for Signature {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
-        Ok(ToSqlOutput::from(self.value.as_str()))
+        Ok(ToSqlOutput::from(self.0.as_str()))
+    }
+}
+
+impl TryFrom<&str> for Signature {
+    type Error = Error;
+
+    fn try_from(value: &str) -> std::result::Result<Self, Self::Error> {
+        Ok(Signature::new(&value))
+    }
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryInto;
+
+    use super::*;
+
+    #[test]
+    fn test_try_from() -> Result<()> {
+        let signature = Signature::try_from("SIGNATURE")?;
+        assert_eq!("SIGNATURE", signature.to_string());
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_info() -> Result<()> {
+        let signature: Signature = "SIGNATURE".try_into()?;
+        assert_eq!("SIGNATURE", signature.to_string());
+        Ok(())
     }
 }

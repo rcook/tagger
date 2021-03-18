@@ -205,6 +205,8 @@ impl ItemTag {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use super::*;
 
     #[test]
@@ -220,7 +222,10 @@ mod tests {
 
         Item::insert(
             &conn,
-            &item::Item::new(Location::new("LOCATION"), Signature::new("SIGNATURE")),
+            &item::Item::new(
+                Location::try_from("LOCATION")?,
+                Signature::try_from("SIGNATURE")?,
+            ),
         )?;
 
         assert_eq!(1, Item::all(&conn)?.len());
