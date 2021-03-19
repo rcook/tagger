@@ -1,11 +1,13 @@
 #![feature(try_trait)]
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate lazy_static;
+
 mod action;
 mod cli;
 mod db;
 mod error;
-mod extension_set;
 mod item;
 mod location;
 mod project;

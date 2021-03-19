@@ -36,6 +36,12 @@ pub enum Error {
     Internal(&'static str, String),
 }
 
+impl std::convert::From<regex::Error> for Error {
+    fn from(error: regex::Error) -> Self {
+        internal_error("Regex", error.to_string())
+    }
+}
+
 impl std::convert::From<rusqlite::Error> for Error {
     fn from(error: rusqlite::Error) -> Self {
         internal_error("Rusqlite", error.to_string())
@@ -97,14 +103,6 @@ impl std::convert::From<Error> for rlua::Error {
 impl std::convert::From<git2::Error> for Error {
     fn from(error: git2::Error) -> Self {
         internal_error("Git", error.to_string())
-    }
-}
-*/
-
-/*
-impl std::convert::From<regex::Error> for Error {
-    fn from(error: regex::Error) -> Self {
-        internal_error("Regex", error.to_string())
     }
 }
 */

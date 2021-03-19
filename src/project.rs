@@ -3,7 +3,6 @@ use std::path::{Path, PathBuf};
 
 use crate::db::create_schema;
 use crate::error::Result;
-use crate::extension_set::ExtensionSet;
 use crate::sample_visitor::SampleVisitor;
 
 pub struct Project {
@@ -12,9 +11,6 @@ pub struct Project {
 }
 
 impl Project {
-    const MEDIA_FILE_EXTENSIONS: [&'static str; 8] =
-        ["aiff", "au", "mid", "m4a", "mp3", "snd", "wav", "wma"];
-
     pub fn from_dir<P: AsRef<Path>>(dir: P) -> Self {
         let db_path = dir.as_ref().join("tagger.db");
         Self {
@@ -31,6 +27,6 @@ impl Project {
     }
 
     pub fn create_sample_visitor(&self) -> SampleVisitor {
-        SampleVisitor::new(ExtensionSet::new(&Self::MEDIA_FILE_EXTENSIONS))
+        SampleVisitor::new()
     }
 }
