@@ -1,7 +1,7 @@
 use clap::{crate_authors, App, AppSettings, Arg, SubCommand};
 
 pub mod command {
-    pub const CHECK: &str = "check";
+    pub const CHECK_FILE_SYSTEM: &str = "checkfs";
     pub const DEFAULT: &str = "";
     pub const DUMP: &str = "dump";
     pub const REBUILD: &str = "rebuild";
@@ -33,7 +33,8 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .default_value("."),
         )
         .subcommand(
-            SubCommand::with_name(CHECK).about("Scan project and directory for inconsistencies"),
+            SubCommand::with_name(CHECK_FILE_SYSTEM)
+                .about("Scan project and directory for inconsistencies"),
         )
         .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
         .subcommand(SubCommand::with_name(REBUILD).about("Scan project and rebuild database"))

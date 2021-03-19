@@ -3,7 +3,7 @@ use crate::error::Result;
 use crate::item::Item;
 use crate::project::Project;
 
-pub fn do_check(project: &Project) -> Result<()> {
+pub fn do_check_file_system(project: &Project) -> Result<()> {
     println!("Checking {}", project.dir.display());
 
     let conn = project.open_db_connection()?;

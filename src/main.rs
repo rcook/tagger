@@ -16,7 +16,7 @@ mod tag;
 use absolute_path::absolute_path;
 use std::env::current_dir;
 
-use crate::action::{do_check, do_default, do_dump, do_rebuild, do_search, do_tag};
+use crate::action::{do_check_file_system, do_default, do_dump, do_rebuild, do_search, do_tag};
 use crate::cli::{arg, command, make_app};
 use crate::error::{user_error_result, Result};
 use crate::project::Project;
@@ -33,7 +33,7 @@ fn main() -> Result<()> {
     };
 
     match matches.subcommand() {
-        (command::CHECK, _submatches) => do_check(&project),
+        (command::CHECK_FILE_SYSTEM, _submatches) => do_check_file_system(&project),
         (command::DEFAULT, _submatches) => do_default(&project),
         (command::DUMP, _submatches) => do_dump(&project),
         (command::REBUILD, _submatches) => do_rebuild(&project),
