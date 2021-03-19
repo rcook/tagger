@@ -1,5 +1,10 @@
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use std::convert::TryFrom;
+
+#[cfg(windows)]
+use std::path::{Path, MAIN_SEPARATOR};
+
+#[cfg(not(windows))]
 use std::path::Path;
 
 use crate::error::{Error, Result};
@@ -8,10 +13,12 @@ use crate::error::{Error, Result};
 pub struct Location(String);
 
 impl Location {
+    const DIRECTORY_SEPARATOR: &'static str = "/";
+
     pub fn from_path(base: impl AsRef<Path>, path: impl AsRef<Path>) -> Result<Self> {
-        Ok(Self(
-            path.as_ref().strip_prefix(base)?.to_str()?.to_string(),
-        ))
+        Ok(Self(Self::transform_path(
+            path.as_ref().strip_prefix(base)?.to_str()?,
+        )))
     }
 
     pub fn as_str(&self) -> &str {
@@ -28,6 +35,16 @@ impl Location {
 
     fn new(value: &str) -> Self {
         Self(String::from(value))
+    }
+
+    #[cfg(windows)]
+    fn transform_path(path: &str) -> String {
+        path.replace(MAIN_SEPARATOR, Self::DIRECTORY_SEPARATOR)
+    }
+
+    #[cfg(not(windows))]
+    fn transform_path(path: &str) -> String {
+        path.to_string()
     }
 }
 
@@ -58,6 +75,18 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg(windows)]
+    fn test_from_path2() -> Result<()> {
+        let location = Location::from_path(
+            Path::new("X:\\foo\\bar"),
+            Path::new("X:\\foo\\bar\\aaa\\bbb"),
+        )?;
+        assert_eq!("aaa/bbb", location.as_str());
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(not(windows))]
     fn test_from_path() -> Result<()> {
         let location = Location::from_path(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
         assert_eq!("aaa/bbb", location.as_str());
