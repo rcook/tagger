@@ -18,7 +18,7 @@ use std::env::current_dir;
 
 use crate::action::{do_dump, do_rebuild, do_report, do_search, do_tag};
 use crate::cli::{arg, command, make_app};
-use crate::error::{internal_error_result, user_error_result, Result};
+use crate::error::{user_error_result, Result};
 use crate::project::Project;
 use crate::tag::Tag;
 
@@ -54,6 +54,6 @@ fn main() -> Result<()> {
                 .collect::<std::io::Result<_>>()?;
             do_tag(&project, &tags, &paths)
         }
-        (c, _) => internal_error_result("Tagger", format!("Subcommand \"{}\" not implemented", c)),
+        (c, _submatches) => panic!("Subcommand \"{}\" not implemented", c),
     }
 }
