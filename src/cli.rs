@@ -1,10 +1,10 @@
 use clap::{crate_authors, App, AppSettings, Arg, SubCommand};
 
 pub mod command {
+    pub const CHECK: &str = "check";
     pub const DEFAULT: &str = "";
     pub const DUMP: &str = "dump";
     pub const REBUILD: &str = "rebuild";
-    pub const REPORT: &str = "report";
     pub const SEARCH: &str = "search";
     pub const TAG: &str = "tag";
 }
@@ -32,9 +32,11 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .long(DIR)
                 .default_value("."),
         )
+        .subcommand(
+            SubCommand::with_name(CHECK).about("Scan project and directory for inconsistencies"),
+        )
         .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
         .subcommand(SubCommand::with_name(REBUILD).about("Scan project and rebuild database"))
-        .subcommand(SubCommand::with_name(REPORT).about("Scan project and show report"))
         .subcommand(
             SubCommand::with_name(SEARCH)
                 .about("Search files by tag")
