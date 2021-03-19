@@ -1,6 +1,7 @@
 use clap::{crate_authors, App, AppSettings, Arg, SubCommand};
 
 pub mod command {
+    pub const DEFAULT: &str = "";
     pub const DUMP: &str = "dump";
     pub const REBUILD: &str = "rebuild";
     pub const REPORT: &str = "report";
