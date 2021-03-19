@@ -13,6 +13,7 @@ pub mod command {
 pub mod arg {
     pub const DIR: &str = "dir";
     pub const PATHS: &str = "paths";
+    pub const DUPLICATES_PATH: &str = "dups";
     pub const TAG: &str = "tag";
 }
 
@@ -42,7 +43,18 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .about("Scan project and directory for inconsistencies"),
         )
         .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
-        .subcommand(SubCommand::with_name(REBUILD).about("Scan project and rebuild database"))
+        .subcommand(
+            SubCommand::with_name(REBUILD)
+                .about("Scan project and rebuild database")
+                .arg(
+                    Arg::with_name(arg::DUPLICATES_PATH)
+                        .help("Path to save list of duplicates")
+                        .value_name("DUPLICATES-PATH")
+                        .takes_value(true)
+                        .long(arg::DUPLICATES_PATH)
+                        .required(false),
+                ),
+        )
         .subcommand(
             SubCommand::with_name(SEARCH)
                 .about("Search files by tag")
