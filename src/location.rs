@@ -2,16 +2,17 @@ use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 
-#[cfg(windows)]
-use std::path::MAIN_SEPARATOR;
-
 use crate::error::{Error, Result};
 
 #[derive(Debug)]
 pub struct Location(String);
 
 impl Location {
-    const DIRECTORY_SEPARATOR: &'static str = "/";
+    #[cfg(windows)]
+    const LOCATION_SEPARATOR: &'static str = "/";
+
+    #[cfg(windows)]
+    const OS_SEPARATOR: &'static str = "\\";
 
     pub fn from_path(base_dir: impl AsRef<Path>, path: impl AsRef<Path>) -> Result<Self> {
         Ok(Self(Self::from_os_path_string(
@@ -41,7 +42,7 @@ impl Location {
 
     #[cfg(windows)]
     fn from_os_path_string(path: &str) -> String {
-        path.replace(MAIN_SEPARATOR, Self::DIRECTORY_SEPARATOR)
+        path.replace(Self::OS_SEPARATOR, Self::LOCATION_SEPARATOR)
     }
 
     #[cfg(not(windows))]
@@ -51,7 +52,7 @@ impl Location {
 
     #[cfg(windows)]
     fn to_os_path_string(value: &str) -> String {
-        value.replace(Self::DIRECTORY_SEPARATOR, MAIN_SEPARATOR)
+        value.replace(Self::LOCATION_SEPARATOR, Self::OS_SEPARATOR)
     }
 
     #[cfg(not(windows))]
