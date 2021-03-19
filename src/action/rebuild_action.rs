@@ -1,9 +1,12 @@
+use std::time::Instant;
+
 use crate::db;
 use crate::error::{Error, Result};
 use crate::item::Item;
 use crate::project::Project;
 
 pub fn do_rebuild(project: &Project) -> Result<()> {
+    let start = Instant::now();
     let conn = project.open_db_connection()?;
     project
         .create_sample_visitor()
@@ -20,5 +23,7 @@ pub fn do_rebuild(project: &Project) -> Result<()> {
             }
             Ok(())
         })?;
+    let elapsed = start.elapsed().as_secs();
+    println!("Rebuild operation completed in {} seconds", elapsed);
     Ok(())
 }
