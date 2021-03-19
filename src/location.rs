@@ -1,11 +1,9 @@
 use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use std::convert::TryFrom;
+use std::path::{Path, PathBuf};
 
 #[cfg(windows)]
-use std::path::{Path, MAIN_SEPARATOR};
-
-#[cfg(not(windows))]
-use std::path::Path;
+use std::path::MAIN_SEPARATOR;
 
 use crate::error::{Error, Result};
 
@@ -15,10 +13,14 @@ pub struct Location(String);
 impl Location {
     const DIRECTORY_SEPARATOR: &'static str = "/";
 
-    pub fn from_path(base: impl AsRef<Path>, path: impl AsRef<Path>) -> Result<Self> {
-        Ok(Self(Self::transform_path(
-            path.as_ref().strip_prefix(base)?.to_str()?,
+    pub fn from_path(base_dir: impl AsRef<Path>, path: impl AsRef<Path>) -> Result<Self> {
+        Ok(Self(Self::from_os_path_string(
+            path.as_ref().strip_prefix(base_dir)?.to_str()?,
         )))
+    }
+
+    pub fn to_path(&self, base_dir: impl AsRef<Path>) -> PathBuf {
+        base_dir.as_ref().join(Self::to_os_path_string(&self.0))
     }
 
     pub fn as_str(&self) -> &str {
@@ -38,13 +40,23 @@ impl Location {
     }
 
     #[cfg(windows)]
-    fn transform_path(path: &str) -> String {
+    fn from_os_path_string(path: &str) -> String {
         path.replace(MAIN_SEPARATOR, Self::DIRECTORY_SEPARATOR)
     }
 
     #[cfg(not(windows))]
-    fn transform_path(path: &str) -> String {
+    fn from_os_path_string(path: &str) -> String {
         path.to_string()
+    }
+
+    #[cfg(windows)]
+    fn to_os_path_string(value: &str) -> String {
+        value.replace(Self::DIRECTORY_SEPARATOR, MAIN_SEPARATOR)
+    }
+
+    #[cfg(not(windows))]
+    fn to_os_path_string(value: &str) -> String {
+        value.to_string()
     }
 }
 
@@ -76,7 +88,7 @@ mod tests {
 
     #[test]
     #[cfg(windows)]
-    fn test_from_path2() -> Result<()> {
+    fn test_from_path() -> Result<()> {
         let location = Location::from_path(
             Path::new("X:\\foo\\bar"),
             Path::new("X:\\foo\\bar\\aaa\\bbb"),
@@ -90,6 +102,27 @@ mod tests {
     fn test_from_path() -> Result<()> {
         let location = Location::from_path(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
         assert_eq!("aaa/bbb", location.as_str());
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn test_to_path() -> Result<()> {
+        let location = Location::from_path(
+            Path::new("X:\\foo\\bar"),
+            Path::new("X:\\foo\\bar\\aaa\\bbb"),
+        )?;
+        let path = location.to_path(Path::new("X:\\foo\\bar"));
+        assert_eq!("X:\\foo\\bar\\aaa\\bbb", path.to_str()?);
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(not(windows))]
+    fn test_to_path() -> Result<()> {
+        let location = Location::from_path(Path::new("/foo/bar"), Path::new("/foo/bar/aaa/bbb"))?;
+        let path = location.to_path(Path::new("/foo/bar"));
+        assert_eq!("/foo/bar/aaa/bbb", path.to_str()?);
         Ok(())
     }
 

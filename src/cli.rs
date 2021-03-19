@@ -1,6 +1,7 @@
 use clap::{crate_authors, App, AppSettings, Arg, SubCommand};
 
 pub mod command {
+    pub const CHECK_DATABASE: &str = "checkdb";
     pub const CHECK_FILE_SYSTEM: &str = "checkfs";
     pub const DEFAULT: &str = "";
     pub const DUMP: &str = "dump";
@@ -31,6 +32,10 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .takes_value(true)
                 .long(DIR)
                 .default_value("."),
+        )
+        .subcommand(
+            SubCommand::with_name(CHECK_DATABASE)
+                .about("Scan project and database for inconsistencies"),
         )
         .subcommand(
             SubCommand::with_name(CHECK_FILE_SYSTEM)
