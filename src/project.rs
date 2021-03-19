@@ -12,6 +12,9 @@ pub struct Project {
 }
 
 impl Project {
+    const MEDIA_FILE_EXTENSIONS: [&'static str; 8] =
+        ["aiff", "au", "mid", "m4a", "mp3", "snd", "wav", "wma"];
+
     pub fn from_dir<P: AsRef<Path>>(dir: P) -> Self {
         let db_path = dir.as_ref().join("tagger.db");
         Self {
@@ -28,6 +31,6 @@ impl Project {
     }
 
     pub fn create_sample_visitor(&self) -> SampleVisitor {
-        SampleVisitor::new(ExtensionSet::new(&["aiff", "wav"]))
+        SampleVisitor::new(ExtensionSet::new(&Self::MEDIA_FILE_EXTENSIONS))
     }
 }
