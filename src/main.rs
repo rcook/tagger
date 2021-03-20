@@ -10,6 +10,7 @@ mod db;
 mod error;
 mod item;
 mod location;
+mod media_path_checker;
 mod project;
 mod sample_visitor;
 mod signature;

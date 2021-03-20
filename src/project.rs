@@ -3,11 +3,13 @@ use std::path::{Path, PathBuf};
 
 use crate::db::create_schema;
 use crate::error::Result;
-use crate::sample_visitor::SampleVisitor;
+use crate::media_path_checker::MediaPathChecker;
+use crate::sample_visitor::PathChecker;
 
 pub struct Project {
     pub dir: PathBuf,
     pub db_path: PathBuf,
+    pub path_checker: MediaPathChecker,
 }
 
 impl Project {
@@ -16,6 +18,7 @@ impl Project {
         Self {
             dir: dir.as_ref().to_owned(),
             db_path: db_path,
+            path_checker: MediaPathChecker::new(),
         }
     }
 
@@ -26,7 +29,7 @@ impl Project {
         Ok(conn)
     }
 
-    pub fn create_sample_visitor(&self) -> SampleVisitor {
-        SampleVisitor::new()
+    pub fn path_checker(&self) -> &impl PathChecker {
+        &self.path_checker
     }
 }
