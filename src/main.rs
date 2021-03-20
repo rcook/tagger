@@ -41,16 +41,7 @@ fn main() -> Result<()> {
         (command::CHECK_FILE_SYSTEM, _submatches) => do_check_file_system(&project),
         (command::DEFAULT, _submatches) => do_default(&project),
         (command::DUMP, _submatches) => do_dump(&project),
-        (command::REBUILD, submatches) => {
-            let duplicates_path = match submatches {
-                Some(s) => match s.value_of(arg::DUPLICATES_PATH) {
-                    Some(d) => Some(absolute_path(&working_dir, d)?),
-                    _ => None,
-                },
-                _ => None,
-            };
-            do_rebuild(&project, &duplicates_path)
-        }
+        (command::REBUILD, _submatches) => do_rebuild(&project),
         (command::SEARCH, Some(submatches)) => {
             let tags = submatches
                 .values_of(arg::TAG)?
