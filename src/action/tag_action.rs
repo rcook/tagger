@@ -14,7 +14,7 @@ pub fn do_tag(
 ) -> Result<()> {
     let conn = project.open_db_connection()?;
     for tag in tags {
-        db::Tag::upsert(&conn, tag)?
+        let _ = db::Tag::upsert(&conn, tag)?;
     }
 
     let names = tags.into_iter().map(|x| x.as_str()).collect();
@@ -27,7 +27,7 @@ pub fn do_tag(
 
     for item in &items {
         for tag in &tags {
-            db::ItemTag::upsert(&conn, item.id, tag.id)?
+            let _ = db::ItemTag::upsert(&conn, item.id, tag.id)?;
         }
     }
 

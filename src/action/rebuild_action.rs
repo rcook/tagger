@@ -45,14 +45,16 @@ pub fn do_rebuild(project: &Project, duplicates_path: &Option<impl AsRef<Path>>)
             match db::Item::upsert(&conn, &item) {
                 Ok(_) => {}
                 Err(Error::Internal("Rusqlite", _)) => {
-                    let message = format!(
-                        "Duplicate file location and/or signature: {}, {}",
-                        item.location.as_str(),
-                        item.signature.as_str()
-                    );
-                    println!("{}", message);
-                    if let Some(d) = duplicates_path {
-                        log_append(&d, &message)
+                    if db::DuplicateItem::upsert(&conn, &item)? != 0 {
+                        let message = format!(
+                            "Duplicate file location and/or signature: {}, {}",
+                            item.location.as_str(),
+                            item.signature.as_str()
+                        );
+                        println!("{}", message);
+                        if let Some(d) = duplicates_path {
+                            log_append(&d, &message)
+                        }
                     }
                 }
                 _ => {}

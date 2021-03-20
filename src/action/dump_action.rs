@@ -18,6 +18,16 @@ pub fn do_dump(project: &Project) -> Result<()> {
         );
     }
 
+    println!("Duplicate items:");
+    for item in db::DuplicateItem::all(&conn)? {
+        println!(
+            "  ({}): {}, {}",
+            item.id,
+            item.location.as_str(),
+            item.signature.as_str()
+        );
+    }
+
     println!("Tags:");
     for tag in db::Tag::all(&conn)? {
         println!("  ({}): {}", tag.id, tag.name);

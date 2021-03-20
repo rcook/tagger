@@ -8,24 +8,33 @@ use crate::location::Location;
 use crate::signature::Signature;
 use crate::tag;
 
+type Id = i64;
+
 #[derive(Debug)]
 pub struct Item {
-    pub id: i32,
+    pub id: Id,
+    pub location: Location,
+    pub signature: Signature,
+}
+
+#[derive(Debug)]
+pub struct DuplicateItem {
+    pub id: Id,
     pub location: Location,
     pub signature: Signature,
 }
 
 #[derive(Debug)]
 pub struct Tag {
-    pub id: i32,
+    pub id: Id,
     pub name: String,
 }
 
 #[derive(Debug)]
 pub struct ItemTag {
-    pub id: i32,
-    pub item_id: i32,
-    pub tag_id: i32,
+    pub id: Id,
+    pub item_id: Id,
+    pub tag_id: Id,
 }
 
 pub fn create_schema(conn: &Connection) -> Result<()> {
@@ -34,6 +43,14 @@ pub fn create_schema(conn: &Connection) -> Result<()> {
             id          INTEGER PRIMARY KEY,
             location    TEXT NOT NULL UNIQUE,
             signature   TEXT NOT NULL UNIQUE
+        )",
+        params![],
+    )?;
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS duplicate_items (
+            id          INTEGER PRIMARY KEY,
+            location    TEXT NOT NULL UNIQUE,
+            signature   TEXT NOT NULL
         )",
         params![],
     )?;
@@ -94,21 +111,21 @@ impl Item {
         Self::query_single(&mut stmt, params![signature])
     }
 
-    pub fn insert(conn: &Connection, item: &item::Item) -> Result<()> {
+    pub fn insert(conn: &Connection, item: &item::Item) -> Result<Id> {
         conn.execute(
             "INSERT INTO items (location, signature) VALUES (?1, ?2)",
             params![item.location, item.signature],
         )?;
-        Ok(())
+        Ok(conn.last_insert_rowid())
     }
 
-    pub fn upsert(conn: &Connection, item: &item::Item) -> Result<()> {
+    pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
         conn.execute(
             "INSERT INTO items (location, signature) VALUES (?1, ?2)
                 ON CONFLICT(location) DO UPDATE SET signature = ?2",
             params![item.location, item.signature],
         )?;
-        Ok(())
+        Ok(conn.last_insert_rowid())
     }
 
     fn query_single(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Option<Self>> {
@@ -121,6 +138,34 @@ impl Item {
                 })
             })
             .optional()?)
+    }
+
+    fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
+        Ok(stmt
+            .query_map(params, |row| {
+                Ok(Self {
+                    id: row.get(0)?,
+                    location: row.get(1)?,
+                    signature: row.get(2)?,
+                })
+            })?
+            .collect::<rusqlite::Result<_>>()?)
+    }
+}
+
+impl DuplicateItem {
+    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
+        let mut stmt = conn.prepare("SELECT id, location, signature FROM duplicate_items")?;
+        Self::query_multi(&mut stmt, params![])
+    }
+
+    pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
+        conn.execute(
+            "INSERT INTO duplicate_items (location, signature) VALUES (?1, ?2)
+                ON CONFLICT(location) DO UPDATE SET signature = ?2",
+            params![item.location, item.signature],
+        )?;
+        Ok(conn.last_insert_rowid())
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
@@ -154,13 +199,13 @@ impl Tag {
         Self::query_multi(&mut stmt, params![name_values])
     }
 
-    pub fn upsert(conn: &Connection, tag: &tag::Tag) -> Result<()> {
+    pub fn upsert(conn: &Connection, tag: &tag::Tag) -> Result<Id> {
         conn.execute(
             "INSERT INTO tags (name) VALUES (?1)
                 ON CONFLICT(name) DO NOTHING",
             params![tag.as_str()],
         )?;
-        Ok(())
+        Ok(conn.last_insert_rowid())
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
@@ -181,13 +226,13 @@ impl ItemTag {
         Self::query_multi(&mut stmt, params![])
     }
 
-    pub fn upsert(conn: &Connection, item_id: i32, tag_id: i32) -> Result<()> {
+    pub fn upsert(conn: &Connection, item_id: Id, tag_id: Id) -> Result<Id> {
         let mut stmt = conn.prepare(
             "INSERT INTO item_tags (item_id, tag_id) VALUES (?1, ?2)
                 ON CONFLICT(item_id, tag_id) DO NOTHING",
         )?;
         stmt.execute(params![item_id, tag_id])?;
-        Ok(())
+        Ok(conn.last_insert_rowid())
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {
@@ -217,6 +262,7 @@ mod tests {
         create_schema(&conn)?;
 
         assert!(Item::all(&conn)?.is_empty());
+        assert!(DuplicateItem::all(&conn)?.is_empty());
         assert!(Tag::all(&conn)?.is_empty());
         assert!(ItemTag::all(&conn)?.is_empty());
 
@@ -229,6 +275,7 @@ mod tests {
         )?;
 
         assert_eq!(1, Item::all(&conn)?.len());
+        assert!(DuplicateItem::all(&conn)?.is_empty());
 
         Tag::upsert(&conn, &tag::Tag::from("tag0"))?;
         Tag::upsert(&conn, &tag::Tag::from("tag1"))?;
@@ -242,6 +289,17 @@ mod tests {
         assert_eq!("tag0", tags[0].name);
         assert_eq!(2, tags[1].id);
         assert_eq!("tag1", tags[1].name);
+
+        DuplicateItem::upsert(
+            &conn,
+            &item::Item::new(
+                Location::try_from("LOCATION")?,
+                Signature::try_from("SIGNATURE")?,
+            ),
+        )?;
+
+        assert_eq!(1, Item::all(&conn)?.len());
+        assert_eq!(1, DuplicateItem::all(&conn)?.len());
 
         Ok(())
     }
