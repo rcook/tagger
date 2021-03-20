@@ -5,7 +5,7 @@ use crate::error::{Error, Result};
 use crate::item::Item;
 use crate::project::Project;
 
-pub fn do_rebuild(project: &Project) -> Result<()> {
+pub fn do_scan(project: &Project) -> Result<()> {
     let start = Instant::now();
     let conn = project.open_db_connection()?;
     project

@@ -19,7 +19,7 @@ use absolute_path::absolute_path;
 use std::env::current_dir;
 
 use crate::action::{
-    do_check_database, do_check_file_system, do_default, do_dump, do_rebuild, do_search, do_tag,
+    do_check_database, do_check_file_system, do_default, do_dump, do_scan, do_search, do_tag,
 };
 use crate::cli::{arg, command, make_app};
 use crate::error::{user_error_result, Result};
@@ -41,7 +41,7 @@ fn main() -> Result<()> {
         (command::CHECK_FILE_SYSTEM, _submatches) => do_check_file_system(&project),
         (command::DEFAULT, _submatches) => do_default(&project),
         (command::DUMP, _submatches) => do_dump(&project),
-        (command::REBUILD, _submatches) => do_rebuild(&project),
+        (command::SCAN, _submatches) => do_scan(&project),
         (command::SEARCH, Some(submatches)) => {
             let tags = submatches
                 .values_of(arg::TAG)?

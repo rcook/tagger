@@ -5,7 +5,7 @@ pub mod command {
     pub const CHECK_FILE_SYSTEM: &str = "checkfs";
     pub const DEFAULT: &str = "";
     pub const DUMP: &str = "dump";
-    pub const REBUILD: &str = "rebuild";
+    pub const SCAN: &str = "scan";
     pub const SEARCH: &str = "search";
     pub const TAG: &str = "tag";
 }
@@ -42,7 +42,9 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .about("Scan project and directory for inconsistencies"),
         )
         .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
-        .subcommand(SubCommand::with_name(REBUILD).about("Scan project and rebuild database"))
+        .subcommand(
+            SubCommand::with_name(SCAN).about("Scan project directory and populate database"),
+        )
         .subcommand(
             SubCommand::with_name(SEARCH)
                 .about("Search files by tag")
