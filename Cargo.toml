@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 absolute-path = { git = "https://github.com/rcook/absolute-path.git", rev = "aca86cfb77bfea08632d1fe49a61092a19a10310" }
 clap = "2.33.3"
+colored = "2.0.0"
 #dirs = "3.0.1"
 #generic-array = "0.14.4"
 lazy_static = "1.4.0"

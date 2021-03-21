@@ -17,17 +17,46 @@ mod signature;
 mod tag;
 
 use absolute_path::absolute_path;
+use colored::Colorize;
 use std::env::current_dir;
+use std::process::exit;
 
 use crate::action::{
     do_check_database, do_check_file_system, do_default, do_dump, do_scan, do_search, do_tag,
 };
 use crate::cli::{arg, command, make_app};
-use crate::error::{user_error_result, Result};
+use crate::error::{user_error_result, Error, Result};
 use crate::project::Project;
 use crate::tag::Tag;
 
-fn main() -> Result<()> {
+#[cfg(windows)]
+use colored::control::set_virtual_terminal;
+
+fn main() {
+    exit(match main_inner() {
+        Ok(()) => 0,
+        Err(Error::User(message)) => {
+            println!("{}", format!("Error: {}", message).bright_red());
+            1
+        }
+        Err(Error::Internal(facility, message)) => {
+            println!(
+                "{}",
+                format!("Internal ({}): {}", facility, message).red().bold()
+            );
+            2
+        }
+    })
+}
+
+fn reset_terminal() {
+    #[cfg(windows)]
+    set_virtual_terminal(true).expect("set_virtual_terminal failed");
+}
+
+fn main_inner() -> Result<()> {
+    reset_terminal();
+
     let matches = make_app().get_matches();
 
     let working_dir = current_dir()?;
