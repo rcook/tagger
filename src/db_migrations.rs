@@ -41,7 +41,7 @@ fn do_migration_202103210001(conn: &Connection) -> Result<()> {
             FOREIGN KEY(item_id) REFERENCES items(id),
             FOREIGN KEY(tag_id) REFERENCES tags(id),
             UNIQUE(item_id, tag_id)
-        )",
+        );",
     )?;
     Ok(())
 }
