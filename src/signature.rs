@@ -7,7 +7,7 @@ use std::path::Path;
 
 use crate::error::{Error, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Signature(String);
 
 impl Signature {
@@ -26,10 +26,6 @@ impl Signature {
 
     pub fn into_string(self) -> String {
         self.0
-    }
-
-    pub fn eq(&self, other: &Signature) -> bool {
-        self.0.eq(&other.0)
     }
 
     fn new(value: &str) -> Self {
@@ -74,6 +70,18 @@ mod tests {
     fn test_try_info() -> Result<()> {
         let signature: Signature = "SIGNATURE".try_into()?;
         assert_eq!("SIGNATURE", signature.as_str());
+        Ok(())
+    }
+
+    #[test]
+    fn test_eq() -> Result<()> {
+        assert_eq!(
+            Signature::try_from("SIGNATURE")?,
+            Signature::try_from("SIGNATURE")?
+        );
+        assert!(Signature::try_from("SIGNATURE")?.eq(&Signature::try_from("SIGNATURE")?));
+        assert!(!Signature::try_from("SIGNATURE0")?.eq(&Signature::try_from("SIGNATURE1")?));
+        assert!(Signature::try_from("SIGNATURE0")? != Signature::try_from("SIGNATURE1")?);
         Ok(())
     }
 }

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Location(String);
 
 impl Location {
@@ -30,10 +30,6 @@ impl Location {
 
     pub fn into_string(self) -> String {
         self.0
-    }
-
-    pub fn eq(&self, other: &Location) -> bool {
-        self.0.eq(&other.0)
     }
 
     fn new(value: &str) -> Self {
@@ -77,7 +73,7 @@ impl TryFrom<&str> for Location {
     type Error = Error;
 
     fn try_from(value: &str) -> std::result::Result<Self, Self::Error> {
-        Ok(Location::new(&value))
+        Ok(Self::new(&value))
     }
 }
 
@@ -138,6 +134,18 @@ mod tests {
     fn test_try_info() -> Result<()> {
         let location: Location = "LOCATION".try_into()?;
         assert_eq!("LOCATION", location.as_str());
+        Ok(())
+    }
+
+    #[test]
+    fn test_eq() -> Result<()> {
+        assert_eq!(
+            Location::try_from("LOCATION")?,
+            Location::try_from("LOCATION")?
+        );
+        assert!(Location::try_from("LOCATION")?.eq(&Location::try_from("LOCATION")?));
+        assert!(!Location::try_from("LOCATION0")?.eq(&Location::try_from("LOCATION1")?));
+        assert!(Location::try_from("LOCATION0")? != Location::try_from("LOCATION1")?);
         Ok(())
     }
 }
