@@ -37,7 +37,7 @@ pub struct ItemTag {
     pub tag_id: Id,
 }
 
-pub fn create_schema(conn: &Connection) -> Result<()> {
+pub fn initialize_db(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS items (
             id          INTEGER PRIMARY KEY,
@@ -259,7 +259,7 @@ mod tests {
         let conn = Connection::open_in_memory()?;
         rusqlite::vtab::array::load_module(&conn)?;
 
-        create_schema(&conn)?;
+        initialize_db(&conn)?;
 
         assert!(Item::all(&conn)?.is_empty());
         assert!(DuplicateItem::all(&conn)?.is_empty());
