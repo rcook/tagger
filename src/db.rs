@@ -1,5 +1,6 @@
 use rusqlite::types::{ToSql, Value};
-use rusqlite::{params, Connection, OptionalExtension, Statement};
+use rusqlite::{params, Connection, OptionalExtension, Statement, NO_PARAMS};
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::error::Result;
@@ -37,14 +38,24 @@ pub struct ItemTag {
     pub tag_id: Id,
 }
 
-pub fn initialize_db(conn: &Connection) -> Result<()> {
+fn do_initial_migration(conn: &Connection) -> Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS migrations (
+            name        TEXT NOT NULL PRIMARY KEY
+        )",
+        NO_PARAMS,
+    )?;
+    Ok(())
+}
+
+fn do_migration_202103210001(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS items (
             id          INTEGER PRIMARY KEY,
             location    TEXT NOT NULL UNIQUE,
             signature   TEXT NOT NULL UNIQUE
         )",
-        params![],
+        NO_PARAMS,
     )?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS duplicate_items (
@@ -52,14 +63,14 @@ pub fn initialize_db(conn: &Connection) -> Result<()> {
             location    TEXT NOT NULL UNIQUE,
             signature   TEXT NOT NULL
         )",
-        params![],
+        NO_PARAMS,
     )?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS tags (
             id          INTEGER PRIMARY KEY,
             name        TEXT NOT NULL UNIQUE
         )",
-        params![],
+        NO_PARAMS,
     )?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS item_tags (
@@ -70,15 +81,39 @@ pub fn initialize_db(conn: &Connection) -> Result<()> {
             FOREIGN KEY(tag_id) REFERENCES tags(id),
             UNIQUE(item_id, tag_id)
         )",
-        params![],
+        NO_PARAMS,
     )?;
+    Ok(())
+}
+
+// Migrations will be applied in the order defined in this array
+static MIGRATIONS: &'static [(fn(&Connection) -> Result<()>, &'static str)] =
+    &[(do_migration_202103210001, "202103210001")];
+
+pub fn initialize_db(conn: &Connection) -> Result<()> {
+    do_initial_migration(conn)?;
+
+    let mut stmt = conn.prepare("SELECT name FROM migrations")?;
+    let names = stmt
+        .query_map(NO_PARAMS, |row| Ok(row.get::<_, String>(0)?))?
+        .collect::<rusqlite::Result<HashSet<_>>>()?;
+
+    for m in MIGRATIONS {
+        if !names.contains(m.1) {
+            println!("migration never run: {}", m.1);
+            m.0(conn)?;
+            let mut stmt = conn.prepare("INSERT INTO migrations (name) VALUES (?1)")?;
+            stmt.execute(params![m.1])?;
+        }
+    }
+
     Ok(())
 }
 
 impl Item {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
-        Self::query_multi(&mut stmt, params![])
+        Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
     pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
@@ -156,7 +191,7 @@ impl Item {
 impl DuplicateItem {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, location, signature FROM duplicate_items")?;
-        Self::query_multi(&mut stmt, params![])
+        Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
     pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
@@ -184,7 +219,7 @@ impl DuplicateItem {
 impl Tag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
-        Self::query_multi(&mut stmt, params![])
+        Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
     pub fn all_by_names(conn: &Connection, names: &Vec<&str>) -> Result<Vec<Self>> {
@@ -223,7 +258,7 @@ impl Tag {
 impl ItemTag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
-        Self::query_multi(&mut stmt, params![])
+        Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
     pub fn upsert(conn: &Connection, item_id: Id, tag_id: Id) -> Result<Id> {
