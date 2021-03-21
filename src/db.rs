@@ -1,6 +1,5 @@
 use rusqlite::types::{ToSql, Value};
 use rusqlite::{params, Connection, OptionalExtension, Statement, NO_PARAMS};
-use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::error::Result;
@@ -36,78 +35,6 @@ pub struct ItemTag {
     pub id: Id,
     pub item_id: Id,
     pub tag_id: Id,
-}
-
-fn do_initial_migration(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS migrations (
-            name        TEXT NOT NULL PRIMARY KEY
-        )",
-        NO_PARAMS,
-    )?;
-    Ok(())
-}
-
-fn do_migration_202103210001(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS items (
-            id          INTEGER PRIMARY KEY,
-            location    TEXT NOT NULL UNIQUE,
-            signature   TEXT NOT NULL UNIQUE
-        )",
-        NO_PARAMS,
-    )?;
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS duplicate_items (
-            id          INTEGER PRIMARY KEY,
-            location    TEXT NOT NULL UNIQUE,
-            signature   TEXT NOT NULL
-        )",
-        NO_PARAMS,
-    )?;
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS tags (
-            id          INTEGER PRIMARY KEY,
-            name        TEXT NOT NULL UNIQUE
-        )",
-        NO_PARAMS,
-    )?;
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS item_tags (
-            id          INTEGER PRIMARY KEY,
-            item_id     INTEGER NOT NULL,
-            tag_id      INTEGER NOT NULL,
-            FOREIGN KEY(item_id) REFERENCES items(id),
-            FOREIGN KEY(tag_id) REFERENCES tags(id),
-            UNIQUE(item_id, tag_id)
-        )",
-        NO_PARAMS,
-    )?;
-    Ok(())
-}
-
-// Migrations will be applied in the order defined in this array
-static MIGRATIONS: &'static [(fn(&Connection) -> Result<()>, &'static str)] =
-    &[(do_migration_202103210001, "202103210001")];
-
-pub fn initialize_db(conn: &Connection) -> Result<()> {
-    do_initial_migration(conn)?;
-
-    let mut stmt = conn.prepare("SELECT name FROM migrations")?;
-    let names = stmt
-        .query_map(NO_PARAMS, |row| Ok(row.get::<_, String>(0)?))?
-        .collect::<rusqlite::Result<HashSet<_>>>()?;
-
-    for m in MIGRATIONS {
-        if !names.contains(m.1) {
-            println!("migration never run: {}", m.1);
-            m.0(conn)?;
-            let mut stmt = conn.prepare("INSERT INTO migrations (name) VALUES (?1)")?;
-            stmt.execute(params![m.1])?;
-        }
-    }
-
-    Ok(())
 }
 
 impl Item {
@@ -288,13 +215,13 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::*;
+    use crate::db_migrations::run_migrations;
 
     #[test]
     fn basics() -> Result<()> {
         let conn = Connection::open_in_memory()?;
         rusqlite::vtab::array::load_module(&conn)?;
-
-        initialize_db(&conn)?;
+        run_migrations(&conn)?;
 
         assert!(Item::all(&conn)?.is_empty());
         assert!(DuplicateItem::all(&conn)?.is_empty());

@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 
-use crate::db::initialize_db;
+use crate::db_migrations::run_migrations;
 use crate::error::Result;
 use crate::media_path_checker::MediaPathChecker;
 use crate::sample_visitor::PathChecker;
@@ -25,7 +25,7 @@ impl Project {
     pub fn open_db_connection(&self) -> Result<Connection> {
         let conn = Connection::open(&self.db_path)?;
         rusqlite::vtab::array::load_module(&conn)?;
-        initialize_db(&conn)?;
+        run_migrations(&conn)?;
         Ok(conn)
     }
 
