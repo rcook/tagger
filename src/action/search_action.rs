@@ -4,17 +4,11 @@ use std::rc::Rc;
 
 use crate::db;
 use crate::error::Result;
+use crate::location::Location;
 use crate::project::Project;
 use crate::tag::Tag;
 
 pub fn do_search(project: &Project, tags: &Vec<Tag>) -> Result<()> {
-    #[derive(Debug)]
-    struct Record {
-        id: i32,
-        item_id: i32,
-        tag_id: i32,
-    }
-
     let conn = project.open_db_connection()?;
     let names = tags.into_iter().map(|x| x.as_str()).collect();
     let tags = db::Tag::all_by_names(&conn, &names)?;
@@ -27,19 +21,13 @@ pub fn do_search(project: &Project, tags: &Vec<Tag>) -> Result<()> {
             .collect::<Vec<Value>>(),
     );
     let mut stmt =
-        conn.prepare("SELECT id, item_id, tag_id FROM item_tags WHERE tag_id IN RARRAY(?1)")?;
-    let records: Vec<_> = stmt
-        .query_map(params![tag_id_values], |row| {
-            Ok(Record {
-                id: row.get(0)?,
-                item_id: row.get(1)?,
-                tag_id: row.get(2)?,
-            })
-        })?
-        .collect::<rusqlite::Result<_>>()?;
+        conn.prepare("SELECT items.location FROM item_tags INNER JOIN items ON items.id = item_id WHERE tag_id IN RARRAY(?1)")?;
+    let locations = stmt
+        .query_map(params![tag_id_values], |row| row.get::<_, Location>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
 
-    for record in records {
-        println!("record={:?}", record)
+    for location in locations {
+        println!("{}", location.as_str())
     }
 
     Ok(())
