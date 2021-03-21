@@ -18,8 +18,10 @@ mod signature;
 mod tag;
 
 use absolute_path::absolute_path;
+use clap::ArgMatches;
 use colored::Colorize;
 use std::env::current_dir;
+use std::path::{Path, PathBuf};
 use std::process::exit;
 
 use crate::action::{
@@ -72,33 +74,29 @@ fn main_inner() -> Result<()> {
         (command::CHECK_DATABASE, _submatches) => do_check_database(&project),
         (command::CHECK_FILE_SYSTEM, _submatches) => do_check_file_system(&project),
         (command::DEFAULT, _submatches) => do_default(&project),
-        (command::DELETE_TAG, Some(submatches)) => {
-            let tags = submatches
-                .values_of(arg::TAG)?
-                .map(|x| Tag::from(x))
-                .collect();
-            do_delete_tag(&project, &tags)
-        }
+        (command::DELETE_TAG, Some(submatches)) => do_delete_tag(&project, &get_tags(submatches)?),
         (command::DUMP, _submatches) => do_dump(&project),
         (command::SCAN, _submatches) => do_scan(&project),
-        (command::SEARCH, Some(submatches)) => {
-            let tags = submatches
-                .values_of(arg::TAG)?
-                .map(|x| Tag::from(x))
-                .collect();
-            do_search(&project, &tags)
-        }
-        (command::TAG, Some(submatches)) => {
-            let tags = submatches
-                .values_of(arg::TAG)?
-                .map(|x| Tag::from(x))
-                .collect();
-            let paths = submatches
-                .values_of(arg::PATHS)?
-                .map(|x| absolute_path(&working_dir, x))
-                .collect::<std::io::Result<_>>()?;
-            do_tag(&project, &tags, &paths)
-        }
+        (command::SEARCH, Some(submatches)) => do_search(&project, &get_tags(submatches)?),
+        (command::TAG, Some(submatches)) => do_tag(
+            &project,
+            &get_tags(submatches)?,
+            &get_paths(&working_dir, submatches)?,
+        ),
         (c, _submatches) => panic!("Subcommand \"{}\" not implemented", c),
     }
+}
+
+fn get_tags<'a>(submatches: &'a ArgMatches) -> Result<Vec<Tag<'a>>> {
+    Ok(submatches
+        .values_of(arg::TAG)?
+        .map(|x| Tag::from(x))
+        .collect())
+}
+
+fn get_paths(working_dir: &impl AsRef<Path>, submatches: &ArgMatches) -> Result<Vec<PathBuf>> {
+    Ok(submatches
+        .values_of(arg::PATHS)?
+        .map(|x| absolute_path(&working_dir, x))
+        .collect::<std::io::Result<_>>()?)
 }
