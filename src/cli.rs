@@ -20,6 +20,16 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
     use arg::*;
     use command::*;
 
+    let t = Arg::with_name(arg::TAG)
+        .help("Tag")
+        .value_name("TAG")
+        .takes_value(true)
+        .long(arg::TAG)
+        .multiple(true)
+        .number_of_values(1)
+        .required(true)
+        .min_values(1);
+
     App::new("Richard's Tagging Tool")
         .author(crate_authors!())
         .about("Maintains database of tags for files")
@@ -48,32 +58,12 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
         .subcommand(
             SubCommand::with_name(SEARCH)
                 .about("Search files by tag")
-                .arg(
-                    Arg::with_name(arg::TAG)
-                        .help("Tag")
-                        .value_name("TAG")
-                        .takes_value(true)
-                        .long(arg::TAG)
-                        .multiple(true)
-                        .number_of_values(1)
-                        .required(true)
-                        .min_values(1),
-                ),
+                .arg(&t),
         )
         .subcommand(
             SubCommand::with_name(command::TAG)
                 .about("Tag files")
-                .arg(
-                    Arg::with_name(arg::TAG)
-                        .help("Tag")
-                        .value_name("TAG")
-                        .takes_value(true)
-                        .long(arg::TAG)
-                        .multiple(true)
-                        .number_of_values(1)
-                        .required(true)
-                        .min_values(1),
-                )
+                .arg(t)
                 .arg(
                     Arg::with_name(PATHS)
                         .help("Files")
