@@ -269,13 +269,39 @@ mod tests {
         Item::insert(
             &conn,
             &item::Item::new(
-                Location::try_from("LOCATION")?,
-                Signature::try_from("SIGNATURE")?,
+                Location::try_from("LOCATION0")?,
+                Signature::try_from("SIGNATURE0")?,
+            ),
+        )?;
+        Item::insert(
+            &conn,
+            &item::Item::new(
+                Location::try_from("LOCATION1")?,
+                Signature::try_from("SIGNATURE1")?,
             ),
         )?;
 
-        assert_eq!(1, Item::all(&conn)?.len());
+        assert_eq!(2, Item::all(&conn)?.len());
         assert!(DuplicateItem::all(&conn)?.is_empty());
+
+        assert_eq!(
+            1,
+            Item::all_by_location(&conn, &Location::try_from("LOCATION0")?)?.len()
+        );
+        assert!(Item::all_by_location(&conn, &Location::try_from("UNKNOWN-LOCATION")?)?.is_empty());
+
+        assert_eq!(
+            2,
+            Item::all_by_locations(
+                &conn,
+                &vec![
+                    Location::try_from("LOCATION0")?,
+                    Location::try_from("UNKNOWN-LOCATION")?,
+                    Location::try_from("LOCATION1")?
+                ]
+            )?
+            .len()
+        );
 
         Tag::upsert(&conn, &tag::Tag::from("tag0"))?;
         Tag::upsert(&conn, &tag::Tag::from("tag1"))?;
@@ -293,12 +319,12 @@ mod tests {
         DuplicateItem::upsert(
             &conn,
             &item::Item::new(
-                Location::try_from("LOCATION")?,
-                Signature::try_from("SIGNATURE")?,
+                Location::try_from("LOCATION0")?,
+                Signature::try_from("SIGNATURE0")?,
             ),
         )?;
 
-        assert_eq!(1, Item::all(&conn)?.len());
+        assert_eq!(2, Item::all(&conn)?.len());
         assert_eq!(1, DuplicateItem::all(&conn)?.len());
 
         Ok(())
