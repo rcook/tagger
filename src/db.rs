@@ -37,6 +37,16 @@ pub struct ItemTag {
     pub tag_id: Id,
 }
 
+fn to_sql_values(values: &Vec<&str>) -> Rc<Vec<Value>> {
+    Rc::new(
+        values
+            .iter()
+            .copied()
+            .map(|x| Value::from(x.to_string()))
+            .collect::<Vec<Value>>(),
+    )
+}
+
 impl Item {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
@@ -150,15 +160,8 @@ impl Tag {
     }
 
     pub fn all_by_names(conn: &Connection, names: &Vec<&str>) -> Result<Vec<Self>> {
-        let name_values = Rc::new(
-            names
-                .iter()
-                .copied()
-                .map(|x| Value::from(x.to_string()))
-                .collect::<Vec<Value>>(),
-        );
         let mut stmt = conn.prepare("SELECT id, name FROM tags WHERE name IN RARRAY(?1)")?;
-        Self::query_multi(&mut stmt, params![name_values])
+        Self::query_multi(&mut stmt, params![to_sql_values(names)])
     }
 
     pub fn upsert(conn: &Connection, tag: &tag::Tag) -> Result<Id> {
@@ -168,6 +171,11 @@ impl Tag {
             params![tag.as_str()],
         )?;
         Ok(conn.last_insert_rowid())
+    }
+
+    pub fn delete_by_names(conn: &Connection, names: &Vec<&str>) -> Result<Vec<Self>> {
+        let mut stmt = conn.prepare("DELETE FROM tags WHERE name IN RARRAY(?1)")?;
+        Self::query_multi(&mut stmt, params![to_sql_values(names)])
     }
 
     fn query_multi(stmt: &mut Statement, params: &[&dyn ToSql]) -> Result<Vec<Self>> {

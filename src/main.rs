@@ -23,7 +23,8 @@ use std::env::current_dir;
 use std::process::exit;
 
 use crate::action::{
-    do_check_database, do_check_file_system, do_default, do_dump, do_scan, do_search, do_tag,
+    do_check_database, do_check_file_system, do_default, do_delete_tag, do_dump, do_scan,
+    do_search, do_tag,
 };
 use crate::cli::{arg, command, make_app};
 use crate::error::{user_error_result, Error, Result};
@@ -71,6 +72,13 @@ fn main_inner() -> Result<()> {
         (command::CHECK_DATABASE, _submatches) => do_check_database(&project),
         (command::CHECK_FILE_SYSTEM, _submatches) => do_check_file_system(&project),
         (command::DEFAULT, _submatches) => do_default(&project),
+        (command::DELETE_TAG, Some(submatches)) => {
+            let tags = submatches
+                .values_of(arg::TAG)?
+                .map(|x| Tag::from(x))
+                .collect();
+            do_delete_tag(&project, &tags)
+        }
         (command::DUMP, _submatches) => do_dump(&project),
         (command::SCAN, _submatches) => do_scan(&project),
         (command::SEARCH, Some(submatches)) => {
