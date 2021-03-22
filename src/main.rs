@@ -9,6 +9,7 @@ mod cli;
 mod db;
 mod error;
 mod item;
+mod like;
 mod location;
 mod media_path_checker;
 mod project;
@@ -19,6 +20,7 @@ mod tag;
 use absolute_path::absolute_path;
 use clap::ArgMatches;
 use colored::Colorize;
+use std::convert::TryFrom;
 use std::env::current_dir;
 use std::path::{Path, PathBuf};
 use std::process::exit;
@@ -29,6 +31,7 @@ use crate::action::{
 };
 use crate::cli::{arg, command, make_app};
 use crate::error::{user_error_result, Error, Result};
+use crate::like::Like;
 use crate::project::Project;
 use crate::tag::Tag;
 
@@ -84,7 +87,7 @@ fn main_inner() -> Result<()> {
         ),
 
         // New commands
-        (command::LIST_TAGS, _submatches) => do_list_tags(&project),
+        (command::LIST_TAGS, Some(submatches)) => do_list_tags(&project, get_like(submatches)?),
 
         // Catch-all
         (c, _submatches) => panic!("Subcommand \"{}\" not implemented", c),
@@ -103,4 +106,11 @@ fn get_paths(working_dir: &impl AsRef<Path>, submatches: &ArgMatches) -> Result<
         .values_of(arg::PATHS)?
         .map(|x| absolute_path(&working_dir, x))
         .collect::<std::io::Result<_>>()?)
+}
+
+fn get_like<'a>(submatches: &'a ArgMatches) -> Result<Option<Like>> {
+    match submatches.value_of(arg::LIKE) {
+        Some(s) => Like::try_from(s).map(|x| Some(x)),
+        None => Ok(None),
+    }
 }

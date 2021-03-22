@@ -18,12 +18,12 @@ pub mod arg {
     pub const DIR: &str = "dir";
     pub const PATHS: &str = "paths";
     pub const TAG: &str = "tag";
+
+    // New args
+    pub const LIKE: &str = "like";
 }
 
 pub fn make_app<'a, 'b>() -> App<'a, 'b> {
-    use arg::*;
-    use command::*;
-
     let t = Arg::with_name(arg::TAG)
         .help("Tag")
         .value_name("TAG")
@@ -40,32 +40,33 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
         .setting(AppSettings::TrailingVarArg)
         .version(env!("CARGO_PKG_DESCRIPTION"))
         .arg(
-            Arg::with_name(DIR)
+            Arg::with_name(arg::DIR)
                 .help("Project directory")
                 .value_name("PROJECT-DIR")
                 .takes_value(true)
-                .long(DIR)
+                .long(arg::DIR)
                 .default_value("."),
         )
         .subcommand(
-            SubCommand::with_name(CHECK_DATABASE)
+            SubCommand::with_name(command::CHECK_DATABASE)
                 .about("Scan project and database for inconsistencies"),
         )
         .subcommand(
-            SubCommand::with_name(CHECK_FILE_SYSTEM)
+            SubCommand::with_name(command::CHECK_FILE_SYSTEM)
                 .about("Scan project and directory for inconsistencies"),
         )
         .subcommand(
-            SubCommand::with_name(DELETE_TAG)
+            SubCommand::with_name(command::DELETE_TAG)
                 .about("Delete tag")
                 .arg(&t),
         )
-        .subcommand(SubCommand::with_name(DUMP).about("Dump database"))
+        .subcommand(SubCommand::with_name(command::DUMP).about("Dump database"))
         .subcommand(
-            SubCommand::with_name(SCAN).about("Scan project directory and populate database"),
+            SubCommand::with_name(command::SCAN)
+                .about("Scan project directory and populate database"),
         )
         .subcommand(
-            SubCommand::with_name(SEARCH)
+            SubCommand::with_name(command::SEARCH)
                 .about("Search files by tag")
                 .arg(&t),
         )
@@ -74,7 +75,7 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .about("Tag files")
                 .arg(t)
                 .arg(
-                    Arg::with_name(PATHS)
+                    Arg::with_name(arg::PATHS)
                         .help("Files")
                         .value_name("PATHS")
                         .takes_value(true)
@@ -84,5 +85,16 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 ),
         )
         // New commands
-        .subcommand(SubCommand::with_name(command::LIST_TAGS).about("Show tags in database"))
+        .subcommand(
+            SubCommand::with_name(command::LIST_TAGS)
+                .about("Show tags in database")
+                .arg(
+                    Arg::with_name(arg::LIKE)
+                        .help("Show matching names using SQL-style LIKE filter")
+                        .value_name("LIKE")
+                        .takes_value(true)
+                        .long(arg::LIKE)
+                        .required(false),
+                ),
+        )
 }

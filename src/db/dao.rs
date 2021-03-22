@@ -2,8 +2,10 @@ use rusqlite::types::{ToSql, Value};
 use rusqlite::{params, Connection, OptionalExtension, Statement, NO_PARAMS};
 use std::rc::Rc;
 
+use super::util::make_like_expression;
 use crate::error::Result;
 use crate::item;
+use crate::like::Like;
 use crate::location::Location;
 use crate::signature::Signature;
 use crate::tag;
@@ -154,8 +156,15 @@ impl DuplicateItem {
 }
 
 impl Tag {
-    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare("SELECT id, name FROM tags")?;
+    pub fn all(conn: &Connection, like: Option<Like>) -> Result<Vec<Self>> {
+        let sql = match like {
+            Some(l) => format!(
+                "SELECT id, name FROM tags WHERE name {}",
+                make_like_expression(&l)
+            ),
+            None => String::from("SELECT id, name FROM tags"),
+        };
+        let mut stmt = conn.prepare(&sql)?;
         Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
@@ -233,7 +242,7 @@ mod tests {
 
         assert!(Item::all(&conn)?.is_empty());
         assert!(DuplicateItem::all(&conn)?.is_empty());
-        assert!(Tag::all(&conn)?.is_empty());
+        assert!(Tag::all(&conn, None)?.is_empty());
         assert!(ItemTag::all(&conn)?.is_empty());
 
         Item::insert(
@@ -277,7 +286,7 @@ mod tests {
         Tag::upsert(&conn, &tag::Tag::from("tag1"))?;
         Tag::upsert(&conn, &tag::Tag::from("tag2"))?;
 
-        assert_eq!(3, Tag::all(&conn)?.len());
+        assert_eq!(3, Tag::all(&conn, None)?.len());
 
         let tags = Tag::all_by_names(&conn, &vec!["tag0", "tag1"])?;
         assert_eq!(2, tags.len());

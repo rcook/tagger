@@ -29,7 +29,7 @@ pub fn do_dump(project: &Project) -> Result<()> {
     }
 
     println!("Tags:");
-    for tag in db::Tag::all(&conn)? {
+    for tag in db::Tag::all(&conn, None)? {
         println!("  ({}): {}", tag.id, tag.name);
     }
 

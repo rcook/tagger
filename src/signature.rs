@@ -67,7 +67,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_info() -> Result<()> {
+    fn test_try_into() -> Result<()> {
         let signature: Signature = "SIGNATURE".try_into()?;
         assert_eq!("SIGNATURE", signature.as_str());
         Ok(())

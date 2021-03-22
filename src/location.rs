@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_info() -> Result<()> {
+    fn test_try_into() -> Result<()> {
         let location: Location = "LOCATION".try_into()?;
         assert_eq!("LOCATION", location.as_str());
         Ok(())
