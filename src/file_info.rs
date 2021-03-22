@@ -4,12 +4,12 @@ use crate::error::Result;
 use crate::location::Location;
 use crate::signature::Signature;
 
-pub struct Item {
+pub struct FileInfo {
     pub location: Location,
     pub signature: Signature,
 }
 
-impl Item {
+impl FileInfo {
     pub fn new(location: Location, signature: Signature) -> Self {
         Self {
             location: location,

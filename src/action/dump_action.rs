@@ -8,23 +8,23 @@ pub fn do_dump(project: &Project) -> Result<()> {
     println!("Project directory: {}", project.dir.display());
     println!("Database path: {}", project.db_path.display());
 
-    println!("Items:");
-    for item in db::Item::all(&conn, None)? {
+    println!("Files:");
+    for file in db::File::all(&conn, None)? {
         println!(
             "  ({}): {}, {}",
-            item.id,
-            item.location.as_str(),
-            item.signature.as_str()
+            file.id,
+            file.location.as_str(),
+            file.signature.as_str()
         );
     }
 
     println!("Duplicate items:");
-    for item in db::DuplicateItem::all(&conn)? {
+    for file in db::DuplicateFile::all(&conn)? {
         println!(
             "  ({}): {}, {}",
-            item.id,
-            item.location.as_str(),
-            item.signature.as_str()
+            file.id,
+            file.location.as_str(),
+            file.signature.as_str()
         );
     }
 
@@ -33,11 +33,11 @@ pub fn do_dump(project: &Project) -> Result<()> {
         println!("  ({}): {}", tag.id, tag.name);
     }
 
-    println!("Item tags:");
-    for item_tag in db::ItemTag::all(&conn)? {
+    println!("File tags:");
+    for file_tag in db::FileTag::all(&conn)? {
         println!(
             "  ({}): {}, {}",
-            item_tag.id, item_tag.item_id, item_tag.tag_id
+            file_tag.id, file_tag.file_id, file_tag.tag_id
         );
     }
 

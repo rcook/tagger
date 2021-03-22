@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use super::util::make_like_expression;
 use crate::error::Result;
-use crate::item;
+use crate::file_info;
 use crate::like::Like;
 use crate::location::Location;
 use crate::signature::Signature;
@@ -13,14 +13,14 @@ use crate::tag;
 type Id = i64;
 
 #[derive(Debug)]
-pub struct Item {
+pub struct File {
     pub id: Id,
     pub location: Location,
     pub signature: Signature,
 }
 
 #[derive(Debug)]
-pub struct DuplicateItem {
+pub struct DuplicateFile {
     pub id: Id,
     pub location: Location,
     pub signature: Signature,
@@ -33,9 +33,9 @@ pub struct Tag {
 }
 
 #[derive(Debug)]
-pub struct ItemTag {
+pub struct FileTag {
     pub id: Id,
-    pub item_id: Id,
+    pub file_id: Id,
     pub tag_id: Id,
 }
 
@@ -49,7 +49,7 @@ fn to_sql_values(values: &Vec<&str>) -> Rc<Vec<Value>> {
     )
 }
 
-impl Item {
+impl File {
     pub fn all(conn: &Connection, like: Option<Like>) -> Result<Vec<Self>> {
         let sql = match like {
             Some(l) => format!(
@@ -92,19 +92,19 @@ impl Item {
         Self::query_single(&mut stmt, params![signature])
     }
 
-    pub fn insert(conn: &Connection, item: &item::Item) -> Result<Id> {
+    pub fn insert(conn: &Connection, file_info: &file_info::FileInfo) -> Result<Id> {
         conn.execute(
             "INSERT INTO files (location, signature) VALUES (?1, ?2)",
-            params![item.location, item.signature],
+            params![file_info.location, file_info.signature],
         )?;
         Ok(conn.last_insert_rowid())
     }
 
-    pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
+    pub fn upsert(conn: &Connection, file_info: &file_info::FileInfo) -> Result<Id> {
         conn.execute(
             "INSERT INTO files (location, signature) VALUES (?1, ?2)
                 ON CONFLICT(location) DO UPDATE SET signature = ?2",
-            params![item.location, item.signature],
+            params![file_info.location, file_info.signature],
         )?;
         Ok(conn.last_insert_rowid())
     }
@@ -134,17 +134,17 @@ impl Item {
     }
 }
 
-impl DuplicateItem {
+impl DuplicateFile {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, location, signature FROM duplicate_files")?;
         Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
-    pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
+    pub fn upsert(conn: &Connection, file_info: &file_info::FileInfo) -> Result<Id> {
         conn.execute(
             "INSERT INTO duplicate_files (location, signature) VALUES (?1, ?2)
                 ON CONFLICT(location) DO UPDATE SET signature = ?2",
-            params![item.location, item.signature],
+            params![file_info.location, file_info.signature],
         )?;
         Ok(conn.last_insert_rowid())
     }
@@ -206,7 +206,7 @@ impl Tag {
     }
 }
 
-impl ItemTag {
+impl FileTag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare("SELECT id, file_id, tag_id FROM file_tags")?;
         Self::query_multi(&mut stmt, NO_PARAMS)
@@ -226,7 +226,7 @@ impl ItemTag {
             .query_map(params, |row| {
                 Ok(Self {
                     id: row.get(0)?,
-                    item_id: row.get(1)?,
+                    file_id: row.get(1)?,
                     tag_id: row.get(2)?,
                 })
             })?
@@ -247,38 +247,38 @@ mod tests {
         rusqlite::vtab::array::load_module(&conn)?;
         run_migrations(&conn)?;
 
-        assert!(Item::all(&conn, None)?.is_empty());
-        assert!(DuplicateItem::all(&conn)?.is_empty());
+        assert!(File::all(&conn, None)?.is_empty());
+        assert!(DuplicateFile::all(&conn)?.is_empty());
         assert!(Tag::all(&conn, None)?.is_empty());
-        assert!(ItemTag::all(&conn)?.is_empty());
+        assert!(FileTag::all(&conn)?.is_empty());
 
-        Item::insert(
+        File::insert(
             &conn,
-            &item::Item::new(
+            &file_info::FileInfo::new(
                 Location::try_from("LOCATION0")?,
                 Signature::try_from("SIGNATURE0")?,
             ),
         )?;
-        Item::insert(
+        File::insert(
             &conn,
-            &item::Item::new(
+            &file_info::FileInfo::new(
                 Location::try_from("LOCATION1")?,
                 Signature::try_from("SIGNATURE1")?,
             ),
         )?;
 
-        assert_eq!(2, Item::all(&conn, None)?.len());
-        assert!(DuplicateItem::all(&conn)?.is_empty());
+        assert_eq!(2, File::all(&conn, None)?.len());
+        assert!(DuplicateFile::all(&conn)?.is_empty());
 
         assert_eq!(
             1,
-            Item::all_by_location(&conn, &Location::try_from("LOCATION0")?)?.len()
+            File::all_by_location(&conn, &Location::try_from("LOCATION0")?)?.len()
         );
-        assert!(Item::all_by_location(&conn, &Location::try_from("UNKNOWN-LOCATION")?)?.is_empty());
+        assert!(File::all_by_location(&conn, &Location::try_from("UNKNOWN-LOCATION")?)?.is_empty());
 
         assert_eq!(
             2,
-            Item::all_by_locations(
+            File::all_by_locations(
                 &conn,
                 &vec![
                     Location::try_from("LOCATION0")?,
@@ -302,16 +302,16 @@ mod tests {
         assert_eq!(2, tags[1].id);
         assert_eq!("tag1", tags[1].name);
 
-        DuplicateItem::upsert(
+        DuplicateFile::upsert(
             &conn,
-            &item::Item::new(
+            &file_info::FileInfo::new(
                 Location::try_from("LOCATION0")?,
                 Signature::try_from("SIGNATURE0")?,
             ),
         )?;
 
-        assert_eq!(2, Item::all(&conn, None)?.len());
-        assert_eq!(1, DuplicateItem::all(&conn)?.len());
+        assert_eq!(2, File::all(&conn, None)?.len());
+        assert_eq!(1, DuplicateFile::all(&conn)?.len());
 
         Ok(())
     }

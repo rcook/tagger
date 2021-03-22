@@ -19,9 +19,9 @@ pub fn do_tag(
         .into_iter()
         .map(|x| Location::from_path(&project.dir, x))
         .collect::<Result<_>>()?;
-    let items = db::Item::all_by_locations(&conn, &locations)?;
-    if items.len() != locations.len() {
-        let h = items
+    let files = db::File::all_by_locations(&conn, &locations)?;
+    if files.len() != locations.len() {
+        let h = files
             .iter()
             .map(|x| (&x.location, x))
             .collect::<HashMap<_, _>>();
@@ -32,7 +32,7 @@ pub fn do_tag(
             .collect::<Vec<_>>()
             .join(", ");
         return user_error_result(format!(
-            "No items found at locations {}",
+            "No files found at locations {}",
             missing_locations_str
         ));
     }
@@ -44,9 +44,9 @@ pub fn do_tag(
     let names = tags.into_iter().map(|x| x.as_str()).collect();
     let tags = db::Tag::all_by_names(&conn, &names)?;
 
-    for item in &items {
+    for file in &files {
         for tag in &tags {
-            let _ = db::ItemTag::upsert(&conn, item.id, tag.id)?;
+            let _ = db::FileTag::upsert(&conn, file.id, tag.id)?;
         }
     }
 

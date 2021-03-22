@@ -5,5 +5,5 @@ mod migration_202103220001;
 mod migrations;
 mod util;
 
-pub use self::dao::{DuplicateItem, Item, ItemTag, Tag};
+pub use self::dao::{DuplicateFile, File, FileTag, Tag};
 pub use self::migrations::run_migrations;
