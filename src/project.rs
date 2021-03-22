@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 
-use crate::db_migrations::run_migrations;
+use crate::db::run_migrations;
 use crate::error::Result;
 use crate::media_path_checker::MediaPathChecker;
 use crate::sample_visitor::PathChecker;

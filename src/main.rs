@@ -7,7 +7,6 @@ extern crate lazy_static;
 mod action;
 mod cli;
 mod db;
-mod db_migrations;
 mod error;
 mod item;
 mod location;

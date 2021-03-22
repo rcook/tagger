@@ -223,7 +223,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::*;
-    use crate::db_migrations::run_migrations;
+    use crate::db::run_migrations;
 
     #[test]
     fn basics() -> Result<()> {
