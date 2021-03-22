@@ -5,7 +5,6 @@ pub mod command {
     pub const CHECK_FILE_SYSTEM: &str = "checkfs";
     pub const DEFAULT: &str = "";
     pub const DELETE_TAG: &str = "del";
-    pub const DUMP: &str = "dump";
     pub const SCAN: &str = "scan";
     pub const SEARCH: &str = "search";
     pub const TAG: &str = "tag";
@@ -61,7 +60,6 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .about("Delete tag")
                 .arg(&t),
         )
-        .subcommand(SubCommand::with_name(command::DUMP).about("Dump database"))
         .subcommand(
             SubCommand::with_name(command::SCAN)
                 .about("Scan project directory and populate database"),

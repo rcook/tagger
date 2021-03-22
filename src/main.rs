@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 use std::process::exit;
 
 use crate::action::{
-    do_check_database, do_check_file_system, do_default, do_delete_tag, do_dump, do_list_files,
+    do_check_database, do_check_file_system, do_default, do_delete_tag, do_list_files,
     do_list_tags, do_scan, do_search, do_tag,
 };
 use crate::cli::{arg, command, make_app};
@@ -77,7 +77,6 @@ fn main_inner() -> Result<()> {
         (command::CHECK_FILE_SYSTEM, _submatches) => do_check_file_system(&project),
         (command::DEFAULT, _submatches) => do_default(&project),
         (command::DELETE_TAG, Some(submatches)) => do_delete_tag(&project, &get_tags(submatches)?),
-        (command::DUMP, _submatches) => do_dump(&project),
         (command::SCAN, _submatches) => do_scan(&project),
         (command::SEARCH, Some(submatches)) => do_search(&project, &get_tags(submatches)?),
         (command::TAG, Some(submatches)) => do_tag(
