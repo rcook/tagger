@@ -26,8 +26,8 @@ use std::path::{Path, PathBuf};
 use std::process::exit;
 
 use crate::action::{
-    do_check_database, do_check_file_system, do_default, do_delete_tag, do_dump, do_list_tags,
-    do_scan, do_search, do_tag,
+    do_check_database, do_check_file_system, do_default, do_delete_tag, do_dump, do_list_files,
+    do_list_tags, do_scan, do_search, do_tag,
 };
 use crate::cli::{arg, command, make_app};
 use crate::error::{user_error_result, Error, Result};
@@ -87,6 +87,7 @@ fn main_inner() -> Result<()> {
         ),
 
         // New commands
+        (command::LIST_FILES, Some(submatches)) => do_list_files(&project, get_like(submatches)?),
         (command::LIST_TAGS, Some(submatches)) => do_list_tags(&project, get_like(submatches)?),
 
         // Catch-all

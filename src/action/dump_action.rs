@@ -9,7 +9,7 @@ pub fn do_dump(project: &Project) -> Result<()> {
     println!("Database path: {}", project.db_path.display());
 
     println!("Items:");
-    for item in db::Item::all(&conn)? {
+    for item in db::Item::all(&conn, None)? {
         println!(
             "  ({}): {}, {}",
             item.id,

@@ -50,8 +50,15 @@ fn to_sql_values(values: &Vec<&str>) -> Rc<Vec<Value>> {
 }
 
 impl Item {
-    pub fn all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare("SELECT id, location, signature FROM items")?;
+    pub fn all(conn: &Connection, like: Option<Like>) -> Result<Vec<Self>> {
+        let sql = match like {
+            Some(l) => format!(
+                "SELECT id, location, signature FROM items WHERE location {}",
+                make_like_expression(&l)
+            ),
+            None => String::from("SELECT id, location, signature FROM items"),
+        };
+        let mut stmt = conn.prepare(&sql)?;
         Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
@@ -240,7 +247,7 @@ mod tests {
         rusqlite::vtab::array::load_module(&conn)?;
         run_migrations(&conn)?;
 
-        assert!(Item::all(&conn)?.is_empty());
+        assert!(Item::all(&conn, None)?.is_empty());
         assert!(DuplicateItem::all(&conn)?.is_empty());
         assert!(Tag::all(&conn, None)?.is_empty());
         assert!(ItemTag::all(&conn)?.is_empty());
@@ -260,7 +267,7 @@ mod tests {
             ),
         )?;
 
-        assert_eq!(2, Item::all(&conn)?.len());
+        assert_eq!(2, Item::all(&conn, None)?.len());
         assert!(DuplicateItem::all(&conn)?.is_empty());
 
         assert_eq!(
@@ -303,7 +310,7 @@ mod tests {
             ),
         )?;
 
-        assert_eq!(2, Item::all(&conn)?.len());
+        assert_eq!(2, Item::all(&conn, None)?.len());
         assert_eq!(1, DuplicateItem::all(&conn)?.len());
 
         Ok(())

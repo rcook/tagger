@@ -11,6 +11,7 @@ pub mod command {
     pub const TAG: &str = "tag";
 
     // New commands
+    pub const LIST_FILES: &str = "listfiles";
     pub const LIST_TAGS: &str = "listtags";
 }
 
@@ -86,11 +87,23 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
         )
         // New commands
         .subcommand(
+            SubCommand::with_name(command::LIST_FILES)
+                .about("Show files in database")
+                .arg(
+                    Arg::with_name(arg::LIKE)
+                        .help("Matching file locations using SQL-style LIKE filter")
+                        .value_name("LIKE")
+                        .takes_value(true)
+                        .long(arg::LIKE)
+                        .required(false),
+                ),
+        )
+        .subcommand(
             SubCommand::with_name(command::LIST_TAGS)
                 .about("Show tags in database")
                 .arg(
                     Arg::with_name(arg::LIKE)
-                        .help("Show matching names using SQL-style LIKE filter")
+                        .help("Match tag names using SQL-style LIKE filter")
                         .value_name("LIKE")
                         .takes_value(true)
                         .long(arg::LIKE)
