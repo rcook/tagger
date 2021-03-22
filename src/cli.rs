@@ -89,7 +89,7 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 .about("Show files in database")
                 .arg(
                     Arg::with_name(arg::LIKE)
-                        .help("Matching file locations using SQL-style LIKE filter")
+                        .help("Match file locations using SQL-style LIKE filter")
                         .value_name("LIKE")
                         .takes_value(true)
                         .long(arg::LIKE)
