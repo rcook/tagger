@@ -1,4 +1,6 @@
 mod dao;
+mod migration_202103210001;
+mod migration_202103210002;
 mod migrations;
 mod util;
 
