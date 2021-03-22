@@ -13,6 +13,7 @@ clap = "2.33.3"
 colored = "2.0.0"
 #dirs = "3.0.1"
 #generic-array = "0.14.4"
+itertools = "0.7.8"
 lazy_static = "1.4.0"
 regex = "1.4.5"
 rusqlite = { version = "0.24.2", features = ["array", "bundled"] } # https://www.davideaversa.it/blog/build-rusqlite-windows/

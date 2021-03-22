@@ -9,6 +9,9 @@ pub mod command {
     pub const SCAN: &str = "scan";
     pub const SEARCH: &str = "search";
     pub const TAG: &str = "tag";
+
+    // New commands
+    pub const LIST_TAGS: &str = "listtags";
 }
 
 pub mod arg {
@@ -80,4 +83,6 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                         .min_values(1),
                 ),
         )
+        // New commands
+        .subcommand(SubCommand::with_name(command::LIST_TAGS).about("Show tags in database"))
 }
