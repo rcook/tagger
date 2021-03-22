@@ -6,6 +6,7 @@ mod list_files_action;
 mod list_tags_action;
 mod scan_action;
 mod search_action;
+mod show_file_action;
 mod tag_action;
 
 pub use self::check_database_action::do_check_database;
@@ -16,4 +17,5 @@ pub use self::list_files_action::do_list_files;
 pub use self::list_tags_action::do_list_tags;
 pub use self::scan_action::do_scan;
 pub use self::search_action::do_search;
+pub use self::show_file_action::do_show_file;
 pub use self::tag_action::do_tag;

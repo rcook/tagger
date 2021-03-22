@@ -10,6 +10,7 @@ pub mod command {
     pub const TAG: &str = "tag";
 
     // New commands
+    pub const SHOW_FILE: &str = "showfile";
     pub const LIST_FILES: &str = "listfiles";
     pub const LIST_TAGS: &str = "listtags";
 }
@@ -21,6 +22,7 @@ pub mod arg {
 
     // New args
     pub const LIKE: &str = "like";
+    pub const PATH: &str = "path";
 }
 
 pub fn make_app<'a, 'b>() -> App<'a, 'b> {
@@ -84,6 +86,17 @@ pub fn make_app<'a, 'b>() -> App<'a, 'b> {
                 ),
         )
         // New commands
+        .subcommand(
+            SubCommand::with_name(command::SHOW_FILE)
+                .about("Show information about file in database")
+                .arg(
+                    Arg::with_name(arg::PATH)
+                        .help("File path")
+                        .value_name("PATH")
+                        .takes_value(true)
+                        .required(true),
+                ),
+        )
         .subcommand(
             SubCommand::with_name(command::LIST_FILES)
                 .about("Show files in database")
