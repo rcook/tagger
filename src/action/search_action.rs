@@ -21,7 +21,7 @@ pub fn do_search(project: &Project, tags: &Vec<Tag>) -> Result<()> {
             .collect::<Vec<Value>>(),
     );
     let mut stmt =
-        conn.prepare("SELECT items.location FROM item_tags INNER JOIN items ON items.id = item_id WHERE tag_id IN RARRAY(?1)")?;
+        conn.prepare("SELECT files.location FROM file_tags INNER JOIN files ON files.id = file_id WHERE tag_id IN RARRAY(?1)")?;
     let locations = stmt
         .query_map(params![tag_id_values], |row| row.get::<_, Location>(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;

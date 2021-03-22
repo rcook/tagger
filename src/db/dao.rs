@@ -53,10 +53,10 @@ impl Item {
     pub fn all(conn: &Connection, like: Option<Like>) -> Result<Vec<Self>> {
         let sql = match like {
             Some(l) => format!(
-                "SELECT id, location, signature FROM items WHERE location {}",
+                "SELECT id, location, signature FROM files WHERE location {}",
                 make_like_expression(&l)
             ),
-            None => String::from("SELECT id, location, signature FROM items"),
+            None => String::from("SELECT id, location, signature FROM files"),
         };
         let mut stmt = conn.prepare(&sql)?;
         Self::query_multi(&mut stmt, NO_PARAMS)
@@ -64,7 +64,7 @@ impl Item {
 
     pub fn all_by_location(conn: &Connection, location: &Location) -> Result<Vec<Self>> {
         let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+            conn.prepare("SELECT id, location, signature FROM files WHERE location = ?1")?;
         Self::query_multi(&mut stmt, params![location])
     }
 
@@ -76,25 +76,25 @@ impl Item {
                 .collect::<Vec<Value>>(),
         );
         let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE location IN RARRAY(?1)")?;
+            conn.prepare("SELECT id, location, signature FROM files WHERE location IN RARRAY(?1)")?;
         Self::query_multi(&mut stmt, params![location_values])
     }
 
     pub fn by_location(conn: &Connection, location: &Location) -> Result<Option<Self>> {
         let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE location = ?1")?;
+            conn.prepare("SELECT id, location, signature FROM files WHERE location = ?1")?;
         Self::query_single(&mut stmt, params![location])
     }
 
     pub fn by_signature(conn: &Connection, signature: &Signature) -> Result<Option<Self>> {
         let mut stmt =
-            conn.prepare("SELECT id, location, signature FROM items WHERE signature = ?1")?;
+            conn.prepare("SELECT id, location, signature FROM files WHERE signature = ?1")?;
         Self::query_single(&mut stmt, params![signature])
     }
 
     pub fn insert(conn: &Connection, item: &item::Item) -> Result<Id> {
         conn.execute(
-            "INSERT INTO items (location, signature) VALUES (?1, ?2)",
+            "INSERT INTO files (location, signature) VALUES (?1, ?2)",
             params![item.location, item.signature],
         )?;
         Ok(conn.last_insert_rowid())
@@ -102,7 +102,7 @@ impl Item {
 
     pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
         conn.execute(
-            "INSERT INTO items (location, signature) VALUES (?1, ?2)
+            "INSERT INTO files (location, signature) VALUES (?1, ?2)
                 ON CONFLICT(location) DO UPDATE SET signature = ?2",
             params![item.location, item.signature],
         )?;
@@ -136,13 +136,13 @@ impl Item {
 
 impl DuplicateItem {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare("SELECT id, location, signature FROM duplicate_items")?;
+        let mut stmt = conn.prepare("SELECT id, location, signature FROM duplicate_files")?;
         Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
     pub fn upsert(conn: &Connection, item: &item::Item) -> Result<Id> {
         conn.execute(
-            "INSERT INTO duplicate_items (location, signature) VALUES (?1, ?2)
+            "INSERT INTO duplicate_files (location, signature) VALUES (?1, ?2)
                 ON CONFLICT(location) DO UPDATE SET signature = ?2",
             params![item.location, item.signature],
         )?;
@@ -208,16 +208,16 @@ impl Tag {
 
 impl ItemTag {
     pub fn all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare("SELECT id, item_id, tag_id FROM item_tags")?;
+        let mut stmt = conn.prepare("SELECT id, file_id, tag_id FROM file_tags")?;
         Self::query_multi(&mut stmt, NO_PARAMS)
     }
 
-    pub fn upsert(conn: &Connection, item_id: Id, tag_id: Id) -> Result<Id> {
+    pub fn upsert(conn: &Connection, file_id: Id, tag_id: Id) -> Result<Id> {
         let mut stmt = conn.prepare(
-            "INSERT INTO item_tags (item_id, tag_id) VALUES (?1, ?2)
-                ON CONFLICT(item_id, tag_id) DO NOTHING",
+            "INSERT INTO file_tags (file_id, tag_id) VALUES (?1, ?2)
+                ON CONFLICT(file_id, tag_id) DO NOTHING",
         )?;
-        stmt.execute(params![item_id, tag_id])?;
+        stmt.execute(params![file_id, tag_id])?;
         Ok(conn.last_insert_rowid())
     }
 
