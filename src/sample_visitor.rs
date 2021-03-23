@@ -10,7 +10,7 @@ pub trait PathChecker {
 pub fn visit(
     dir: &Path,
     path_checker: &impl PathChecker,
-    cb: &dyn Fn(&DirEntry) -> Result<()>,
+    cb: &mut impl FnMut(&DirEntry) -> Result<()>,
 ) -> Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {

@@ -8,7 +8,7 @@ pub fn do_check_file_system(project: &Project) -> Result<()> {
     println!("Checking {}", project.dir.display());
 
     let conn = project.open_db_connection()?;
-    sample_visitor::visit(&project.dir, project.path_checker(), &|entry| {
+    sample_visitor::visit(&project.dir, project.path_checker(), &mut |entry| {
         let p = entry.path();
         let file_info = FileInfo::from_file(&project.dir, &p)?;
         let rel_path = p.strip_prefix(&project.dir)?;
