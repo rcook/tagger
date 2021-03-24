@@ -3,10 +3,10 @@ use rusqlite::{params, Connection, OptionalExtension, Statement, NO_PARAMS};
 use std::rc::Rc;
 
 use super::util::make_like_expression;
-use crate::error::Result;
 use crate::file_info;
 use crate::like::Like;
 use crate::location::Location;
+use crate::result::Result;
 use crate::signature::Signature;
 use crate::tag;
 

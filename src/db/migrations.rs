@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use super::migration_202103210001;
 use super::migration_202103210002;
 use super::migration_202103220001;
-use crate::error::Result;
+use crate::result::Result;
 
 // Migrations will be run in the order defined in this array
 static MIGRATIONS: &'static [(fn(&Connection) -> Result<()>, &'static str)] = &[

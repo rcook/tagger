@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use crate::error::Error;
+use crate::result::Error;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Like(String);
@@ -32,7 +32,7 @@ mod tests {
     use std::convert::TryInto;
 
     use super::*;
-    use crate::error::Result;
+    use crate::result::Result;
 
     #[test]
     fn test_try_from() -> Result<()> {

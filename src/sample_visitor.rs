@@ -1,7 +1,7 @@
 use std::fs::{self, DirEntry};
 use std::path::Path;
 
-use crate::error::Result;
+use crate::result::Result;
 
 pub trait PathChecker {
     fn matches(&self, path: &impl AsRef<Path>) -> Result<bool>;

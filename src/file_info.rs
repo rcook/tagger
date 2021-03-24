@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::error::Result;
 use crate::location::Location;
+use crate::result::Result;
 use crate::signature::Signature;
 
 pub struct FileInfo {

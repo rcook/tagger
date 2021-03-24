@@ -27,7 +27,7 @@ mod test {
     use std::convert::TryFrom;
 
     use super::*;
-    use crate::error::Result;
+    use crate::result::Result;
 
     #[test]
     fn test_escape_string_literal() {

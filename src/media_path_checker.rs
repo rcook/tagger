@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::path::{Path, MAIN_SEPARATOR};
 
-use crate::error::Result;
+use crate::result::Result;
 use crate::sample_visitor::PathChecker;
 
 pub struct MediaPathChecker {}

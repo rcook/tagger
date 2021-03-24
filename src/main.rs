@@ -7,12 +7,12 @@ extern crate lazy_static;
 mod action;
 mod cli;
 mod db;
-mod error;
 mod file_info;
 mod like;
 mod location;
 mod media_path_checker;
 mod project;
+mod result;
 mod sample_visitor;
 mod signature;
 mod tag;
@@ -30,9 +30,9 @@ use crate::action::{
     do_list_tags, do_scan, do_search, do_show_file, do_tag,
 };
 use crate::cli::{arg, command, make_app};
-use crate::error::{user_error_result, Error, Result};
 use crate::like::Like;
 use crate::project::Project;
+use crate::result::{user_error_result, Error, Result};
 use crate::tag::Tag;
 
 #[cfg(windows)]

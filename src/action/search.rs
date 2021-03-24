@@ -3,9 +3,9 @@ use rusqlite::types::Value;
 use std::rc::Rc;
 
 use crate::db;
-use crate::error::Result;
 use crate::location::Location;
 use crate::project::Project;
+use crate::result::Result;
 use crate::tag::Tag;
 
 pub fn do_search(project: &Project, tags: &Vec<Tag>) -> Result<()> {

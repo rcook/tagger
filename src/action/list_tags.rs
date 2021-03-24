@@ -1,9 +1,9 @@
 use itertools::Itertools;
 
 use crate::db;
-use crate::error::Result;
 use crate::like::Like;
 use crate::project::Project;
+use crate::result::Result;
 
 pub fn do_list_tags(project: &Project, like: Option<Like>) -> Result<()> {
     let conn = project.open_db_connection()?;

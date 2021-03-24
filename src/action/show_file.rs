@@ -2,9 +2,9 @@ use rusqlite::params;
 use std::path::Path;
 
 use crate::db::File;
-use crate::error::Result;
 use crate::location::Location;
 use crate::project::Project;
+use crate::result::Result;
 
 pub fn do_show_file(project: &Project, path: &impl AsRef<Path>) -> Result<()> {
     let conn = project.open_db_connection()?;

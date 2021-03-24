@@ -1,9 +1,9 @@
 use std::time::Instant;
 
 use crate::db;
-use crate::error::{Error, Result};
 use crate::file_info::FileInfo;
 use crate::project::Project;
+use crate::result::{Error, Result};
 use crate::sample_visitor;
 
 pub fn do_scan(project: &Project) -> Result<()> {

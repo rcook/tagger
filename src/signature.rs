@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
-use crate::error::{Error, Result};
+use crate::result::{Error, Result};
 
 #[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Signature(String);

@@ -1,7 +1,7 @@
 use crate::db;
-use crate::error::Result;
 use crate::file_info::FileInfo;
 use crate::project::Project;
+use crate::result::Result;
 use crate::sample_visitor;
 
 pub fn do_check_file_system(project: &Project) -> Result<()> {

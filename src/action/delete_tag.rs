@@ -1,6 +1,6 @@
 use crate::db;
-use crate::error::Result;
 use crate::project::Project;
+use crate::result::Result;
 use crate::tag::Tag;
 
 pub fn do_delete_tag(project: &Project, tags: &Vec<Tag>) -> Result<()> {

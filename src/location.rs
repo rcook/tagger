@@ -2,7 +2,7 @@ use rusqlite::types::{FromSql, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use std::convert::TryFrom;
 use std::path::{Path, PathBuf};
 
-use crate::error::{Error, Result};
+use crate::result::{Error, Result};
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Location(String);

@@ -3,9 +3,9 @@ use std::fmt::Debug;
 use std::path::Path;
 
 use crate::db;
-use crate::error::{user_error_result, Result};
 use crate::location::Location;
 use crate::project::Project;
+use crate::result::{user_error_result, Result};
 use crate::tag::Tag;
 
 pub fn do_tag(
